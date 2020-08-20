@@ -4,11 +4,11 @@
 Intro CLI Tutorial
 ==================
 
-**PIED**
+**iBioGen**
 
 Example CLI::
 
   ## Do stuff
-  PIED -n wat
+  iBioGen -n wat
 
-The code is on `github <https://github.com/isaacovercast/PIED>`_
+The code is on `github <https://github.com/isaacovercast/iBioGen>`_

@@ -1,12 +1,12 @@
 """
-PIED - Phylogeographic Temporal Analysis
+iBioGen - Phylogeographic Temporal Analysis
 """
 __version__ = "0.0.8"
 __author__ = "Isaac Overcast"
 
 ## Possible values for __loglevel__: "DEBUG"  "INFO"  "WARN"  "ERROR"
 __debugflag__ = "./.debug"
-__debugfile__ = "./PIED_log.txt"
+__debugfile__ = "./iBioGen_log.txt"
 
 ## define state vars
 __interactive__ = 1      ## CLI __main__ changes to 0
@@ -25,7 +25,7 @@ with warnings.catch_warnings(record=True) as w:
     matplotlib.use("agg")
 
 ## FIXME: If need be import the class from the main module
-from .PIED import Core
+from .iBioGen import Core
 from .ClaDS import ClaDS
 from .util import *
 

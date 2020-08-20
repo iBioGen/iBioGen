@@ -1,8 +1,8 @@
 .ipynb_checkpoints/
-PIED.egg-info/
-PIED/__pycache__/
-PIED/default_PIED/
-*PIED_log.txt
+iBioGen.egg-info/
+iBioGen/__pycache__/
+iBioGen/default_iBioGen/
+*iBioGen_log.txt
 *params-*
 *.pyc
-default_PIED/
+default_iBioGen/

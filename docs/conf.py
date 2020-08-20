@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
-project = u'PIED'
+project = u'iBioGen'
 copyright = u'2020'
 author = u'Isaac Overcast'
 
@@ -103,7 +103,7 @@ html_static_path = []
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'PIEDdoc'
+htmlhelp_basename = 'iBioGendoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -130,7 +130,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'PIED.tex', u'PIED Documentation',
+    (master_doc, 'iBioGen.tex', u'iBioGen Documentation',
      u'Isaac Overcast, et al', 'manual'),
 ]
 
@@ -140,7 +140,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'pta', u'PIED Documentation',
+    (master_doc, 'pta', u'iBioGen Documentation',
      [author], 1)
 ]
 
@@ -151,8 +151,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'PIED', u'PIED Documentation',
-     author, 'PIED', 'One line description of project.',
+    (master_doc, 'iBioGen', u'iBioGen Documentation',
+     author, 'iBioGen', 'One line description of project.',
      'Miscellaneous'),
 ]
 

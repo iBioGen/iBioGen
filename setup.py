@@ -10,15 +10,15 @@ def requires():
 ## Auto-update ipyrad version from git repo tag
 # Fetch version from git tags, and write to version.py.
 # Also, when git is not available (PyPi package), use stored version.py.
-INITFILE = "PIED/__init__.py"
+INITFILE = "iBioGen/__init__.py"
 CUR_VERSION = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
                     open(INITFILE, "r").read(),
                     re.M).group(1)
 
 setup(
-    name="PIED",
+    name="iBioGen",
     version=CUR_VERSION,
-    url="https://github.com/isaacovercast/PIED",
+    url="https://github.com/iBioGen/iBioGen",
     author="Isaac Overcast",
     author_email="isaac.overcast@gmail.com",
     description="Phylogeographic Temporal Analysis",
@@ -27,7 +27,7 @@ setup(
     install_requires=requires(),
     entry_points={
             'console_scripts': [
-                'PIED = PIED.__main__:main',
+                'iBioGen = iBioGen.__main__:main',
             ],
     },
     license='GPL',

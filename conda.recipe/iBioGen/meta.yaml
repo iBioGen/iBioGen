@@ -1,9 +1,9 @@
 package:
-  name: pied
+  name: ibiogen
   version: "0.0.8"
 
 source:
-  git_url: https://github.com/isaacovercast/PIED
+  git_url: https://github.com/iBioGen/iBioGen
   git_tag: master
 
 build:
@@ -29,9 +29,9 @@ requirements:
     - scipy
 
   commands:
-    - PIED -v
+    - iBioGen -v
 
 about:
-  home: https://github.com/isaacovercast/PIED
+  home: https://github.com/iBioGen/iBioGen
   license: GPLv3
-  summary: PIED
+  summary: iBioGen

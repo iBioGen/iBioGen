@@ -4,7 +4,7 @@
 Intro API Tutorial
 ==================
 
-**PIED**
+**iBioGen**
 
 Example API::
 
@@ -12,4 +12,4 @@ Inference Procedure
 ===================
 
 
-The code is on `github <https://github.com/isaacovercast/PIED>`_
+The code is on `github <https://github.com/isaacovercast/iBioGen>`_

@@ -5,11 +5,11 @@ API Documentation
 Documented Class
 ****************
 
-.. autoclass:: PIED.wat.class
+.. autoclass:: iBioGen.wat.class
     :members:
 
 Random Functions
 ++++++++++++++++
 
-.. autofunction:: PIED.wat.do_function
+.. autofunction:: iBioGen.wat.do_function
 

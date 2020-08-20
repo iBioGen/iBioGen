@@ -9,7 +9,7 @@ import subprocess
 
 # Fetch version from git tags, and write to version.py.
 # Also, when git is not available (PyPi package), use stored version.py.
-initfile = "PIED/__init__.py"
+initfile = "iBioGen/__init__.py"
 
 version_git = sys.argv[1]
 print("Setting new version to - {}".format(version_git))
@@ -44,7 +44,7 @@ new_commits = subprocess.check_output(cmd.split())
 print(new_commits)
 commit_lines = [x.split(b" ", 1) for x in new_commits.split(b"\n")]
 
-checkfor = "Merge branch 'master' of https://github.com/isaacovercast/PIED"
+checkfor = "Merge branch 'master' of https://github.com/isaacovercast/iBioGen"
 # Write updates to releasenotes.rst
 for line in fileinput.input(release_file, inplace=1):
     if line.strip().startswith("=========="):
@@ -66,13 +66,13 @@ for line in fileinput.input(release_file, inplace=1):
     print(line.strip("\n"))
 
 
-# Write version to PIED/__init__.py
+# Write version to iBioGen/__init__.py
 for line in fileinput.input(initfile, inplace=1):
     if line.strip().startswith("__version__"):
         line = "__version__ = \""+version_git+"\""
     print(line.strip("\n"))
 
-conda_yaml_file = "conda.recipe/PIED/meta.yaml"
+conda_yaml_file = "conda.recipe/iBioGen/meta.yaml"
 for line in fileinput.input(conda_yaml_file, inplace=1):
     if line.strip().startswith("version"):
         line = "  version: \"{}\"".format(version_git)
@@ -82,10 +82,10 @@ try:
     subprocess.call(["git", "add", release_file])
     subprocess.call(["git", "add", initfile])
     subprocess.call(["git", "add", conda_yaml_file])
-    subprocess.call(["git", "commit", "-m \"Updating PIED/__init__.py to "+\
+    subprocess.call(["git", "commit", "-m \"Updating iBioGen/__init__.py to "+\
                     "version - {}".format(version_git)])
     subprocess.call(["git", "push"])
-    subprocess.call(["git", "tag", "-a", version_git, "-m", "Updating PIED to "+\
+    subprocess.call(["git", "tag", "-a", version_git, "-m", "Updating iBioGen to "+\
                     "version - {}".format(version_git)])
     subprocess.call(["git", "push", "origin", version_git])
 except Exception as e:
@@ -94,6 +94,6 @@ except Exception as e:
 print("Push new version of conda installer")
 
 try:
-    subprocess.call(["conda", "build", "-c", "conda-forge", "conda.recipe/PIED"])
+    subprocess.call(["conda", "build", "-c", "conda-forge", "conda.recipe/iBioGen"])
 except Exception as e:
     print("something broke - {}".format(e))

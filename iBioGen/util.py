@@ -13,8 +13,8 @@ import sys
 LOGGER = logging.getLogger(__name__)
 
 ## Custom exception class
-class PIEDError(Exception):
-    """ General PIED exception """
+class iBioGenError(Exception):
+    """ General iBioGen exception """
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
 
@@ -102,7 +102,7 @@ def tuplecheck(newvalue, dtype=str):
         try:
             newvalue = tuple(newvalue)
         except TypeError:
-            raise PIEDError("tuplecheck failed for {}, improper list format".format(newvalue))
+            raise iBioGenError("tuplecheck failed for {}, improper list format".format(newvalue))
     else:
         try:
             ## If it's just one value of the proper dtype this should
@@ -120,7 +120,7 @@ def tuplecheck(newvalue, dtype=str):
                 maxval = dtype(float(newvalue.split("-")[1].strip()))
                 newvalue = tuple([minval, maxval])
             except Exception as inst:
-                raise PIEDError("{}\ttuplecheck() failed to cast to {} - {}"\
+                raise iBioGenError("{}\ttuplecheck() failed to cast to {} - {}"\
                             .format(inst, dtype, newvalue))
 
     LOGGER.debug("Returning {} - {}".format(type(newvalue), newvalue))
@@ -150,12 +150,12 @@ def set_params(data, param, newvalue, quiet=True):
     #allowed_params = list(data.paramsdict.keys())
     ## require parameter recognition
     if not param in list(data.paramsdict.keys()):
-        raise PIEDError("Parameter key not recognized: {}"\
+        raise iBioGenError("Parameter key not recognized: {}"\
                                 .format(param))
     try:
         data._paramschecker(param, newvalue, quiet)
     except Exception as inst:
-        raise PIEDError(BAD_PARAMETER.format(param, inst, newvalue))
+        raise iBioGenError(BAD_PARAMETER.format(param, inst, newvalue))
     return data
 
 
@@ -177,7 +177,7 @@ def load_sims(sims, sep=" "):
             sims.append(dat)
         dat_df = pd.DataFrame(sims)
     else:
-        raise PIEDError("Input simulations not understood. Must be a file name or a pandas DataFrame")
+        raise iBioGenError("Input simulations not understood. Must be a file name or a pandas DataFrame")
     return params_df, dat_df
 
 

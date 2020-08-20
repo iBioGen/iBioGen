@@ -13,16 +13,16 @@ import toytree
 from collections import OrderedDict
 from scipy.stats import hmean
 
-import PIED
-from PIED.util import *
+import iBioGen
+from iBioGen.util import *
 
 LOGGER = logging.getLogger(__name__)
 
 class Core(object):
     """
-    The PIED object
+    The iBioGen object
 
-    :param str name: The name of this PIED simulation. This is used for
+    :param str name: The name of this iBioGen simulation. This is used for
         creating output files.
     :param bool quiet: Don't print anything ever.
     :param bool verbose: Print more progress info.
@@ -30,7 +30,7 @@ class Core(object):
 
     def __init__(self, name, quiet=False, verbose=False):
         if not name:
-            raise PIEDError(REQUIRE_NAME)
+            raise iBioGenError(REQUIRE_NAME)
 
         ## Do some checking here to make sure the name doesn't have
         ## special characters, spaces, or path delimiters. Allow _ and -.
@@ -38,7 +38,7 @@ class Core(object):
         self._check_name(name)
         self.name = name
 
-        self._version = PIED.__version__
+        self._version = iBioGen.__version__
 
         ## stores default ipcluster launch info
         self._ipcluster = {
@@ -58,10 +58,10 @@ class Core(object):
         ## at the end of this file
         ##
         ## Also be sure to add it to _paramschecker so the type gets set correctly
-        ## FIXME: PIED parameters need to be added here
+        ## FIXME: iBioGen parameters need to be added here
         self.paramsdict = OrderedDict([
                        ("simulation_name", name),
-                       ("project_dir", "./default_PIED"),
+                       ("project_dir", "./default_iBioGen"),
                        ("birth_rate", 1),
                        ("stop_criterion", "taxa"),
                        ("ntaxa", 20),
@@ -79,6 +79,9 @@ class Core(object):
                        ("sample_size", 10),
                        ("abundance_scaling", "None")
         ])
+
+        ## Any params that are specified as priors get stored here
+        self._priors = {}
 
         ## Separator to use for reading/writing files
         self._sep = " "
@@ -107,15 +110,12 @@ class Core(object):
                         ("harmonic_mean", True),
         ])
 
-        ## The empirical msfs
-        self.empirical_msfs = ""
-
 
     #########################
     ## Housekeeping functions
     #########################
     def __str__(self):
-        return "<PIED.Core: {}>".format(self.paramsdict["simulation_name"])
+        return "<iBioGen.Core: {}>".format(self.paramsdict["simulation_name"])
 
 
     ## Test Core name is valid and raise if it contains any special characters
@@ -123,7 +123,7 @@ class Core(object):
         invalid_chars = string.punctuation.replace("_", "")\
                                           .replace("-", "")+ " "
         if any(char in invalid_chars for char in name):
-            raise PIEDError(BAD_PIED_NAME.format(name))
+            raise iBioGenError(BAD_iBioGen_NAME.format(name))
 
 
     ## This doesn't do anything, but it could be useful if you need to record
@@ -159,14 +159,14 @@ class Core(object):
         :param bool quiet: Whether to print info.
         """
         ## TODO: This should actually check the values and make sure they make sense
-        ## FIXME: PIED parameters need to be updated here.
+        ## FIXME: iBioGen parameters need to be updated here.
         try:
             ## Cast params to correct types
             if param == "project_dir":
                 ## If it already exists then just inform the user that we'll be adding
                 ## more simulations to the current project directory
                 if " " in newvalue:
-                    raise PIEDError("`project_dir` may not contain spaces. You put:\n{}".format(newvalue))
+                    raise iBioGenError("`project_dir` may not contain spaces. You put:\n{}".format(newvalue))
                 self.paramsdict[param] = os.path.realpath(os.path.expanduser(newvalue))
 
                 if not os.path.exists(self.paramsdict["project_dir"]):
@@ -174,19 +174,19 @@ class Core(object):
             
             elif param == "stop_criterion":
                 if newvalue not in ["taxa", "time"]:
-                    raise PIEDError("Bad parameter: `stop_criterion` must "\
+                    raise iBioGenError("Bad parameter: `stop_criterion` must "\
                                     + "be one of `taxa` or `time`.")
                 self.paramsdict[param] = newvalue
             elif param == "process":
                 if newvalue not in ["abundance", "rate"]:
-                    raise PIEDError("Bad parameter: `process` must be "\
+                    raise iBioGenError("Bad parameter: `process` must be "\
                                     + "`abundance` or `rate`.")
                 self.paramsdict[param] = newvalue
             elif param == "ClaDS":
                 try:
                     self.paramsdict[param] = ast.literal_eval(newvalue)
                 except ValueError:
-                    raise PIEDError("Bad parameter: `ClaDS` must be `True` or "\
+                    raise iBioGenError("Bad parameter: `ClaDS` must be `True` or "\
                                     + "`False`.")
             elif param == "abundance_scaling":
                 if newvalue in ["log", "ln", "None"]:
@@ -195,36 +195,41 @@ class Core(object):
                     try:
                         self.paramsdict[param] = float(newvalue)
                     except ValueError:
-                        raise PIEDError("Bad parameter: `abundance_scaling` must be "\
+                        raise iBioGenError("Bad parameter: `abundance_scaling` must be "\
                                         +"'None', 'log', 'ln' or a ratio as a float value.")
             ## All strictly positive float parameters
             elif param in ["abundance_sigma", "ClaDS_sigma", "ClaDS_alpha",
                             "birth_rate", "time", "growth_rate_sigma",
                             "mutation_rate"]:
-                tup = tuplecheck(newvalue, dtype=float)
+                newvalue = tuplecheck(newvalue, dtype=float)
                 msg = "Bad parameter: `{}` must be strictly positive.".format(param)
-                if isinstance(tup, tuple):
-                    if tup[0] <= 0:
-                        raise PIEDError(msg)
-                elif tup <= 0:
-                        raise PIEDError(msg)
-                self.paramsdict[param] = tup
+                if isinstance(newvalue, tuple):
+                    if newvalue[0] <= 0:
+                        raise iBioGenError(msg)
+                elif newvalue <= 0:
+                        raise iBioGenError(msg)
+                self.paramsdict[param] = newvalue
             elif param in ["ntaxa", "abundance_mean", "sequence_length",
                             "sample_size"]:
-                tup = tuplecheck(newvalue, dtype=int)
+                newvalue = tuplecheck(newvalue, dtype=int)
                 msg = "Bad parameter: `{}` must be strictly positive.".format(param)
-                if isinstance(tup, tuple):
-                    if tup[0] <= 0:
-                        raise PIEDError(msg)
-                    elif tup <= 0:
-                        raise PIEDError(msg)
-                self.paramsdict[param] = tup
+                if isinstance(newvalue, tuple):
+                    if newvalue[0] <= 0:
+                        raise iBioGenError(msg)
+                elif newvalue <= 0:
+                    raise iBioGenError(msg)
+                self.paramsdict[param] = newvalue
             ## Growth rate mean can be zero, no problem
             elif param == "growth_rate_mean":
-                tup = tuplecheck(newvalue, dtype=float)
-                self.paramsdict[param] = tup
+                newvalue = tuplecheck(newvalue, dtype=float)
+                self.paramsdict[param] = newvalue
             else:
                 self.paramsdict[param] = newvalue
+
+            ## If its a prior range store it in the _priors dict
+            if isinstance(newvalue, tuple):
+                self._priors[param] = newvalue
+
         except Exception as inst:
             LOGGER.debug("Error setting parameter: {} {}".format(param, newvalue))
             raise
@@ -259,7 +264,7 @@ class Core(object):
         try:
             self = set_params(self, param, value, quiet)
         except:
-            raise PIEDError("Bad param/value {}/{}".format(param, value))
+            raise iBioGenError("Bad param/value {}/{}".format(param, value))
 
 
     def get_params(self, verbose=False):
@@ -278,9 +283,9 @@ class Core(object):
     def write_params(self, outfile=None, outdir=None, force=False):
         """
         Write out the parameters of this model to a file properly formatted as
-        input for the PIED CLI. A good and simple way to share/archive 
+        input for the iBioGen CLI. A good and simple way to share/archive 
         parameter settings for simulations. This is also the function that's
-        used by __main__ to generate default params.txt files for `PIED -n`.
+        used by __main__ to generate default params.txt files for `iBioGen -n`.
 
         :param string outfile: The name of the params file to generate. If not
             specified this will default to `params-<Region.name>.txt`.
@@ -295,18 +300,18 @@ class Core(object):
         if outdir is None:
             outdir = self.paramsdict["project_dir"]
         elif not os.path.exists(outdir):
-            raise PIEDError(NO_OUTDIR).format(outdir)
+            raise iBioGenError(NO_OUTDIR).format(outdir)
 
         outfile = os.path.join(outdir, outfile)
         ## Test if params file already exists?
         ## If not forcing, test for file and bail out if it exists
         if not force:
             if os.path.isfile(outfile):
-                raise PIEDError(PARAMS_EXISTS.format(outfile))
+                raise iBioGenError(PARAMS_EXISTS.format(outfile))
 
         with open(outfile, 'w') as paramsfile:
             ## Write the header. Format to 80 columns
-            header = "------- PIED params file (v.{})".format(PIED.__version__)
+            header = "------- iBioGen params file (v.{})".format(iBioGen.__version__)
             header += ("-"*(80-len(header)))
             paramsfile.write(header)
 
@@ -346,7 +351,7 @@ class Core(object):
 
         # raise error if JSON not found
         if not os.path.exists(json_path):
-            raise PIEDError("""
+            raise iBioGenError("""
                 Could not find saved model file (.json) in expected location.
                 Checks in: [project_dir]/[assembly_name].json
                 Checked: {}
@@ -362,7 +367,7 @@ class Core(object):
         oldpath = os.path.join(olddir, os.path.splitext(oldname)[0] + ".json")
 
         # create a fresh new Assembly
-        null = PIED.Core(oldname, quiet=True)
+        null = iBioGen.Core(oldname, quiet=True)
 
         # print Loading message with shortened path
         if not quiet:
@@ -441,7 +446,7 @@ class Core(object):
                 ## Don't let one bad apple spoil the bunch,
                 ## so keep trying through the rest of the asyncs
         if len(result_list) < nsims:
-            print("\n   One or more simulations failed. Check PIED_log.txt for details.\n")
+            print("\n   One or more simulations failed. Check iBioGen_log.txt for details.\n")
 
         return result_list
     
@@ -472,13 +477,15 @@ class Core(object):
 
         if not quiet: progressbar(100, 100, " Finished {} simulations in   {}\n".format(i+1, elapsed))
         if len(fail_list) > 0:
-            print("\n  {} failed simulations inside serial_simulate. See PIED_log.txt for details.\n".format(len(fail_list)))
+            print("\n  {} failed simulations inside serial_simulate. See iBioGen_log.txt for details.\n".format(len(fail_list)))
 
         return tree_list
 
 
     def _simulate(self, verbose=False):
         
+        self._sample_priors()
+
         # Each species has an attribute for each feature in this dictionary.
         #  abundance - Abundance of the species
         #  r - Rate at which abundance changes, can be negative
@@ -541,9 +548,9 @@ class Core(object):
                 ## This _used_ to happen, but then I think I fixed it. You can
                 ## remove this the next time you feel like it.
                 if sp.abundance == 1:
-                    raise PIEDError("Sp w/ abundance=1. This should never happen.")
+                    raise iBioGenError("Sp w/ abundance=1. This should never happen.")
                 else:
-                    raise PIEDError("Abundance exceeds int64: {}".format(sp.abundance))
+                    raise iBioGenError("Abundance exceeds int64: {}".format(sp.abundance))
 
             c1.add_feature("abundance", abund)
             c2.add_feature("abundance", sp.abundance-abund)
@@ -580,7 +587,7 @@ class Core(object):
                     try:
                         x.abundance = int(x.abundance * (np.exp(x.r*dt)))
                     except Exception as inst:
-                        raise PIEDError("Abundance is too big: {}".format(x.abundance))
+                        raise iBioGenError("Abundance is too big: {}".format(x.abundance))
                 ## Record abundance through time
                 x.abunds.append(x.abundance)
 
@@ -613,9 +620,9 @@ class Core(object):
                 if t >= self.paramsdict["time"]:
                     done = True
             if len(tips) == 1 and tips[0].name == '0':
-                raise PIEDError("All lineages extinct")
+                raise iBioGenError("All lineages extinct")
             elif t >= self._hackersonly["max_t"]:
-                raise PIEDError("Max time exceded")
+                raise iBioGenError("Max time exceded")
             if done:
                 if verbose:
                     print("ntips {}".format(len(tips)))
@@ -633,7 +640,7 @@ class Core(object):
                 ## runtime of msprime _explodes_.
                 thetas = np.array([x.Ne * self.paramsdict["mutation_rate"] for x in tips])
                 if np.any(thetas > self._hackersonly["max_theta"]):
-                    raise PIEDError(MAX_THETA_ERROR.format(self._hackersonly["max_theta"],\
+                    raise iBioGenError(MAX_THETA_ERROR.format(self._hackersonly["max_theta"],\
                                                             np.max(thetas)))
 
                 ## Relabel tips to have reasonable names
@@ -661,7 +668,7 @@ class Core(object):
         """
         Do the heavy lifting here. 
 
-        :param int nsims: The number of PIED simulations to perform
+        :param int nsims: The number of iBioGen simulations to perform
         :param ipyparallel.Client ipyclient: If specified use this ipyparallel
             client to parallelize simulation runs. If not specified simulations
             will be run serially.
@@ -711,6 +718,27 @@ class Core(object):
             ## Don't write a newline if all simulations failed
             if result_list:
                 output.write("\n".join([" ".join(x) for x in result_list]) + "\n")
+
+
+    def _sample_priors(self, loguniform=False):
+        """
+        For any param that is specified as a tuple, sample an individual value
+        from the prior.
+        """
+        for k, param in self._priors.items():
+            if isinstance(param[0], float):
+                if loguniform:
+                    param = np.random.uniform(np.log10(param[0]), np.log10(param[1]))
+                    param = np.power(10, param)
+                else:
+                    param = np.random.uniform(param[0], param[1])
+            else:
+                if loguniform:
+                    param = np.random.uniform(np.log10(param[0]), np.log10(param[1]))
+                    param = np.int32(np.power(10, param))
+                else:
+                    param = np.random.randint(param[0], param[1])
+            self.paramsdict[k] = param
 
 
 def serial_simulate(model, nsims=1, quiet=False, verbose=False):
@@ -906,7 +934,7 @@ def _tup_and_byte(obj):
 ## FIXME: This will need to be modified to fit the new program
 def _save_json(data, quiet=False):
     """
-    Save PIED as json
+    Save iBioGen as json
     ## data as dict
     """
     # store params without the reference to Assembly object in params
@@ -986,7 +1014,7 @@ PARAMS = {
 #############################
 ## Global error messages
 #############################
-BAD_PIED_NAME = """\
+BAD_iBioGen_NAME = """\
     No spaces or special characters of any kind are allowed in the simulation
     name. Special characters include all punctuation except dash '-' and
     underscore '_'. A good practice is to replace spaces with underscores '_'.

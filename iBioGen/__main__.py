@@ -1,4 +1,4 @@
-""" the main CLI for calling PIED """
+""" the main CLI for calling iBioGen """
 
 import pkg_resources
 import argparse
@@ -8,9 +8,9 @@ import time
 import sys
 import os
 
-import PIED
-from PIED.util import *
-from PIED.parallel import *
+import iBioGen
+from iBioGen.util import *
+from iBioGen.parallel import *
 
 LOGGER = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ def parse_params(args):
 
     ## Get params and make into a dict, ignore all blank lines
     items = [i.split("##")[0].strip() for i in plines[0].split("\n")[1:] if not i.strip() == ""]
-    keys = list(PIED.Core('null', quiet=True).paramsdict.keys())
+    keys = list(iBioGen.Core('null', quiet=True).paramsdict.keys())
     params = {str(i):j for i, j in zip(keys, items)}
 
     LOGGER.debug("Got params - {}".format(params))
@@ -44,7 +44,7 @@ def getmodel(args, params):
     read in from the params file. Does not launch ipcluster. 
     """
 
-    project_dir = PIED.util._expander(params['project_dir'])
+    project_dir = iBioGen.util._expander(params['project_dir'])
     LOGGER.debug("project_dir: {}".format(project_dir))
     sim_name = params['simulation_name']
 
@@ -52,7 +52,7 @@ def getmodel(args, params):
     if not os.path.exists(project_dir):
         os.mkdir(project_dir)
 
-    data = PIED.Core(sim_name, quiet=args.quiet, verbose=args.verbose)
+    data = iBioGen.Core(sim_name, quiet=args.quiet, verbose=args.verbose)
 
     ## Populate the parameters
     for param in params:
@@ -74,8 +74,8 @@ def parse_command_line():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""\n
   * Example command-line usage: 
-    PIED -n data                       ## create new file called params-data.txt 
-    PIED -p params-data.txt            ## run PIED with settings in params file
+    iBioGen -n data                       ## create new file called params-data.txt 
+    iBioGen -p params-data.txt            ## run iBioGen with settings in params file
     """)
 
     ## add arguments 
@@ -104,10 +104,10 @@ def parse_command_line():
         help="do not print anything ever.")
 
     parser.add_argument('-d', action='store_true', dest="debug",
-        help="print lots more info to PIED_log.txt.")
+        help="print lots more info to iBioGen_log.txt.")
 
     parser.add_argument('-V', action='version', 
-        version=str(pkg_resources.get_distribution('PIED')),
+        version=str(pkg_resources.get_distribution('iBioGen')),
         help=argparse.SUPPRESS)
 
     parser.add_argument("--ipcluster", metavar="ipcluster", dest="ipcluster",
@@ -165,14 +165,14 @@ def do_sims(data, args):
     except KeyboardInterrupt as inst:
         print("\n  Keyboard Interrupt by user")
         LOGGER.info("assembly interrupted by user.")
-    except PIEDError as inst:
-        LOGGER.error("PIEDError: %s", inst)
-        print("\n  Encountered an error (see details in ./PIED_log.txt)"+\
+    except iBioGenError as inst:
+        LOGGER.error("iBioGenError: %s", inst)
+        print("\n  Encountered an error (see details in ./iBioGen_log.txt)"+\
               "\n  Error summary is below -------------------------------"+\
               "\n{}".format(inst))
     except Exception as inst:
         LOGGER.error(inst)
-        print("\n  Encountered an unexpected error (see ./PIED_log.txt)"+\
+        print("\n  Encountered an unexpected error (see ./iBioGen_log.txt)"+\
               "\n  Error message is below -------------------------------"+\
               "\n{}".format(inst))
     finally:
@@ -197,7 +197,7 @@ def do_sims(data, args):
                 ## if CLI, stop jobs and shutdown. Don't use _cli here 
                 ## because you can have a CLI object but use the --ipcluster
                 ## flag, in which case we don't want to kill ipcluster.
-                if 'PIED-cli' in data._ipcluster["cluster_id"]:
+                if 'iBioGen-cli' in data._ipcluster["cluster_id"]:
                     LOGGER.info("  shutting down engines")
                     ipyclient.shutdown(hub=True, block=False)
                     ipyclient.close()
@@ -219,29 +219,29 @@ def do_sims(data, args):
 
 def main():
     """ main function """
-    PIED.__interactive__ = 0  ## Turn off API output
+    iBioGen.__interactive__ = 0  ## Turn off API output
 
     ## parse params file input (returns to stdout if --help or --version)
     args = parse_command_line()
 
-    if not args.quiet: print(PIED_HEADER)
+    if not args.quiet: print(iBioGen_HEADER)
 
-    ## Turn the debug output written to PIED_log.txt up to 11!
+    ## Turn the debug output written to iBioGen_log.txt up to 11!
     ## Clean up the old one first, it's cleaner to do this here than
     ## at the end (exceptions, etc)
-    if os.path.exists(PIED.__debugflag__):
-        os.remove(PIED.__debugflag__)
+    if os.path.exists(iBioGen.__debugflag__):
+        os.remove(iBioGen.__debugflag__)
 
     if args.debug:
         if not args.quiet: print("\n  ** Enabling debug mode **\n")
-        PIED._debug_on()
-        atexit.register(PIED._debug_off)
+        iBioGen._debug_on()
+        atexit.register(iBioGen._debug_off)
 
     ## create new paramsfile if -n
     if args.new:
         ## Create a tmp assembly, call write_params to make default params.txt
         try:
-            tmpassembly = PIED.Core(args.new, quiet=True)
+            tmpassembly = iBioGen.Core(args.new, quiet=True)
             tmpassembly.write_params("params-{}.txt".format(args.new), outdir="./", 
                                      force=args.force)
         except Exception as inst:
@@ -256,18 +256,18 @@ def main():
     ## if params then must provide action argument with it
     if args.params:
         if not any([args.sims]):
-            print(PIED_USAGE)
+            print(iBioGen_USAGE)
             sys.exit(2)
 
     if not args.params:
         if any([args.sims]):
-            print(PIED_USAGE)
+            print(iBioGen_USAGE)
             sys.exit(2)
 
     ## Log the current version. End run around the LOGGER
     ## so it'll always print regardless of log level.
-    with open(PIED.__debugfile__, 'a') as logfile:
-        logfile.write(PIED_HEADER)
+    with open(iBioGen.__debugfile__, 'a') as logfile:
+        logfile.write(iBioGen_HEADER)
         logfile.write("\n  Begin run: {}".format(time.strftime("%Y-%m-%d %H:%M")))
         logfile.write("\n  Using args {}".format(vars(args)))
         logfile.write("\n  Platform info: {}\n".format(os.uname()))
@@ -284,9 +284,9 @@ def main():
         if args.sims:
             ## Only blank the log file if we're actually going to do real
             ## work. In practice the log file should never get this big.
-            if os.path.exists(PIED.__debugfile__):
-                if os.path.getsize(PIED.__debugfile__) > 50000000:
-                    with open(PIED.__debugfile__, 'w') as clear:
+            if os.path.exists(iBioGen.__debugfile__):
+                if os.path.getsize(iBioGen.__debugfile__) > 50000000:
+                    with open(iBioGen.__debugfile__, 'w') as clear:
                         clear.write("file reset")
 
             #if not args.quiet:
@@ -303,16 +303,16 @@ BAD_PARAMETER_ERROR = """
     Bad parameter {} - {}
     {}"""
 
-PIED_HEADER = \
+iBioGen_HEADER = \
 "\n -------------------------------------------------------------"+\
-"\n  PIED [v.{}]".format(PIED.__version__)+\
+"\n  iBioGen [v.{}]".format(iBioGen.__version__)+\
 "\n  PhIgurE out an acronymD"+\
 "\n -------------------------------------------------------------"
 
 
-PIED_USAGE = """
+iBioGen_USAGE = """
     Must provide action argument along with -p argument for params file. 
-    e.g., PIED -p params-test.txt -s 10000           ## run 10000 simulations
+    e.g., iBioGen -p params-test.txt -s 10000           ## run 10000 simulations
     """
 
 if __name__ == "__main__": 

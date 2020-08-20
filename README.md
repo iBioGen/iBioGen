@@ -1,6 +1,5 @@
-![panda pied python](./img/pied_small.png)
 
-# PIED
+# iBioGen
 A birth/death process with abundances and genetic diversity at the tips. 
 Abundance can evolve either as a BM process with random fission at speciation
 events, or the rate of change (r) of abundance can evolve as BM in which case
@@ -10,20 +9,20 @@ can also shift at branching events in the manner of ClaDS.
 ## Installation
 
 * Install [conda](https://docs.conda.io/en/latest/miniconda.html)  for python3
-* `conda create -n PIED python=3.7`
-* `conda activate PIED`
-* `conda install -c conda-forge -c iovercast pied`
+* `conda create -n iBioGen python=3.7`
+* `conda activate iBioGen`
+* `conda install -c conda-forge -c iovercast ibiogen`
 
 ## Usage
 Create a params file:
 
-    PIED -n wat
+    iBioGen -n wat
 
 Look at the params and edit them if you wish:
 
-    ------- PIED params file (v.0.0.2)----------------------------------------------
+    ------- iBioGen params file (v.0.0.2)----------------------------------------------
     wat                  ## [0] [simulation_name]: The name of this simulation scenario
-    ./default_PIED       ## [1] [project_dir]: Where to save files
+    ./default_iBioGen       ## [1] [project_dir]: Where to save files
     1                    ## [2] [birth_rate]: Speciation rate
     taxa                 ## [3] [stop_criterion]: Whether to stop on ntaxa or time
     20                   ## [4] [ntaxa]: Number of taxa to simulate if stop is `ntaxa`
@@ -43,14 +42,14 @@ Look at the params and edit them if you wish:
 
 Run 10 simulations:
 
-    PIED -p params-wat.txt -s 10
+    iBioGen -p params-wat.txt -s 10
 
 Run 10 simulations on 10 cores in parallel:
 
-    PIED -p params-wat.txt -s 10 -c 10
+    iBioGen -p params-wat.txt -s 10 -c 10
 
 ## Output
-Results are written to `default_PIED/wat-SIMOUT.csv`. Not generally human
+Results are written to `default_iBioGen/wat-SIMOUT.csv`. Not generally human
 readable the results file contains the parameters used to generate each
 simulation, as well as the observed numbers of tips, the observed simulation
 time, and the calculated extinction rate (as a fraction of birth events),
@@ -63,7 +62,7 @@ are as follows (along with 1 example simulation):
 
 The data for each simulation can be parsed in python like this:
 
-    simfile = "/path/to/default_PIED/wat-SIMOUT.csv"
+    simfile = "/path/to/default_iBioGen/wat-SIMOUT.csv"
     sim_df = pd.read_csv(simfile, header=0, sep=" ")
     sims = []
     # There's probably a "fancier" way to do this, but this gets the job done

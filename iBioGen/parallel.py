@@ -11,7 +11,7 @@ import time
 import sys
 import os
 
-from PIED.util import PIEDError
+from iBioGen.util import iBioGenError
 
 
 import logging
@@ -83,7 +83,7 @@ def register_ipcluster(data):
     so that ipcluster will be killed on exit.
     """
     ## check if this pid already has a running cluster
-    data._ipcluster["cluster_id"] = "PIED-cli-"+str(os.getpid())
+    data._ipcluster["cluster_id"] = "iBioGen-cli-"+str(os.getpid())
     start_ipcluster(data)
     return data
 
@@ -124,7 +124,7 @@ def get_client(cluster_id, profile, engines, timeout, cores, quiet, **kwargs):
         sys.stderr = save_stderr
 
         ## check that all engines have connected            
-        if (engines == "MPI") or ("PIED-cli-" in cluster_id):
+        if (engines == "MPI") or ("iBioGen-cli-" in cluster_id):
             if not quiet:
                 print(connection_string)
 
@@ -134,7 +134,7 @@ def get_client(cluster_id, profile, engines, timeout, cores, quiet, **kwargs):
             ## If MPI then wait for all engines to start so we can report
             ## how many cores are on each host. If Local then only wait for
             ## one engine to be ready and then just go.
-            if (engines == "MPI") or ("PIED-cli-" in cluster_id):
+            if (engines == "MPI") or ("iBioGen-cli-" in cluster_id):
                 ## wait for cores to be connected
                 if cores:
                     time.sleep(0.1)
@@ -157,10 +157,10 @@ def get_client(cluster_id, profile, engines, timeout, cores, quiet, **kwargs):
 
     ## This is raised if ipcluster is not running ------------
     except IOError as inst:
-        if "PIED-cli-" in cluster_id:
-            raise PIEDError(NO_IPCLUSTER_CLI)
+        if "iBioGen-cli-" in cluster_id:
+            raise iBioGenError(NO_IPCLUSTER_CLI)
         else:
-            raise PIEDError(NO_IPCLUSTER_API)
+            raise iBioGenError(NO_IPCLUSTER_API)
 
     except (ipp.TimeoutError, ipp.NoEnginesRegistered) as inst:
         raise inst
