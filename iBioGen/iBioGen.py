@@ -73,7 +73,7 @@ class Core(object):
                        ("growth_rate_mean", 0),
                        ("growth_rate_sigma", 0.01),
                        ("ClaDS_sigma", 0.1),
-                       ("ClaDS_alpha", 0.1),
+                       ("ClaDS_alpha", 0.9),
                        ("sequence_length", 500),
                        ("mutation_rate", 1e-5),
                        ("sample_size", 10),
@@ -414,7 +414,8 @@ class Core(object):
                 _ipcluster["pids"][eid] = pid
 
         lbview = ipyclient.load_balanced_view()
-        for i in range(nsims):
+        ## cast nsims as int for the R interface, which passes it in as float
+        for i in range(int(nsims)):
             ## Call do_serial sims args are: nsims, quiet, verbose
             parallel_jobs[i] = lbview.apply(serial_simulate, self, 1, True, False)
 
@@ -462,7 +463,8 @@ class Core(object):
         printstr = " Performing Simulations    | {} |"
         start = time.time()
         fail_list = []
-        for i in range(nsims):
+        ## Cast nsims to int for the R interface, which passes it through as float
+        for i in range(int(nsims)):
             try:
                 elapsed = datetime.timedelta(seconds=int(time.time()-start))
                 if not quiet: progressbar(nsims, i, printstr.format(elapsed))
@@ -699,25 +701,25 @@ class Core(object):
     ## Save the results to the output DataFrame
     def _write_df(self, result_list, force=False):
 
-        simfile = os.path.join(self.paramsdict["project_dir"], "{}-SIMOUT.csv".format(self.name))
+        self.simfile = os.path.join(self.paramsdict["project_dir"], "{}-SIMOUT.csv".format(self.name))
         ## Open output file. If force then overwrite existing, otherwise just append.
         if force:
             ## Prevent from shooting yourself in the foot with -f
             try:
-                os.rename(simfile, simfile+".bak")
+                os.rename(self.simfile, self.simfile+".bak")
             except FileNotFoundError:
                 ## If the simfile doesn't exist catch the error and move on
                 pass
 
-        if (not os.path.exists(simfile)) or force:
+        if (not os.path.exists(self.simfile)) or force:
             params = self._get_params_header()
             params.extend(["obs_ntaxa", "obs_time", "turnover_rate"])
             params.append("data")
             params.append("tree")
-            with open(simfile, 'w') as simout:
+            with open(self.simfile, 'w') as simout:
                 simout.write(" ".join(params) + "\n")
 
-        with open(simfile, 'a') as output:
+        with open(self.simfile, 'a') as output:
             ## Don't write a newline if all simulations failed
             if result_list:
                 output.write("\n".join([" ".join(x) for x in result_list]) + "\n")
