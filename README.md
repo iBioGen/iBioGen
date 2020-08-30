@@ -13,32 +13,32 @@ can also shift at branching events in the manner of ClaDS.
 * `conda activate iBioGen`
 * `conda install -c conda-forge -c iovercast ibiogen`
 
-## Usage
+## Command Line Usage
 Create a params file:
 
     iBioGen -n wat
 
 Look at the params and edit them if you wish:
 
-    ------- iBioGen params file (v.0.0.2)----------------------------------------------
-    wat                  ## [0] [simulation_name]: The name of this simulation scenario
-    ./default_iBioGen       ## [1] [project_dir]: Where to save files
+    ------- iBioGen params file (v.0.0.8)-------------------------------------------
+    watdo                ## [0] [simulation_name]: The name of this simulation scenario
+    ./default_iBioGen    ## [1] [project_dir]: Where to save files
     1                    ## [2] [birth_rate]: Speciation rate
     taxa                 ## [3] [stop_criterion]: Whether to stop on ntaxa or time
     20                   ## [4] [ntaxa]: Number of taxa to simulate if stop is `ntaxa`
     4                    ## [5] [time]: Amount of time to simulate if stop is `time`
     abundance            ## [6] [process]: Whether to evolve `abundance` or growth `rate` via BM
-    False                ## [7] [ClaDS]: Whether to allow speciation rates to change along the branches a la ClaDS
+    True                 ## [7] [ClaDS]: Whether to allow speciation rates to change along the branches a la ClaDS
     50000                ## [8] [abundance_mean]: Ancestral abundance at time 0
     0.1                  ## [9] [abundance_sigma]: Rate at which abundance changes if process is `abundance`
     0                    ## [10] [growth_rate_mean]: Ancestral population growth rate at time 0.
     0.01                 ## [11] [growth_rate_sigma]: Rate at which growth rate changes if process is `rate`
-    0.1                  ## [12] [lambda_sigma]: Rate at which speciation rate changes if ClaDS is True.
-    0.1                  ## [13] [alpha]: Rate shift if ClaDS is True
-    500                  ## [14] [sequence_length]: Length of the genomic region simulated, in base pairs.
+    0.1                  ## [12] [ClaDS_sigma]: Rate at which speciation rate changes if ClaDS is True
+    0.9                  ## [13] [ClaDS_alpha]: Rate shift if ClaDS is True
+    500                  ## [14] [sequence_length]: Length of the genomic region simulated, in base pairs
     1e-05                ## [15] [mutation_rate]: Mutation rate per base per generation
     10                   ## [16] [sample_size]: Number of samples to draw for calculating genetic diversity
-    None                 ## [17] [abundance_scaling]: Scaling abundance to Ne. Can be None, log, ln or a ratio.
+    None                 ## [17] [abundance_scaling]: Scaling abundance to Ne. Can be None, log, ln or a ratio
 
 Run 10 simulations:
 
@@ -49,32 +49,20 @@ Run 10 simulations on 10 cores in parallel:
     iBioGen -p params-wat.txt -s 10 -c 10
 
 ## Output
-Results are written to `default_iBioGen/wat-SIMOUT.csv`. Not generally human
-readable the results file contains the parameters used to generate each
-simulation, as well as the observed numbers of tips, the observed simulation
-time, and the calculated extinction rate (as a fraction of birth events),
-data for each tip, including abundance, genetic diversity, growth rate,
-and speciation rate, and finally the dated tree in newick form. Field names
-are as follows (along with 1 example simulation):
+Results are written to `<project_dir>/<simulation_name>` (so in the example:
+`default_iBioGen/wat-SIMOUT.csv`. Not generally human readable the results
+file contains the parameters used to generate each simulation, as well as the
+observed numbers of tips, the observed simulation time, and the calculated
+extinction rate (as a fraction of birth events), data for each tip, including
+abundance, genetic diversity, growth rate, and speciation rate, and finally
+the dated tree in newick form. Field names are as follows (along with 1
+example simulation):
 
-    birth_rate stop_criterion ntaxa time process ClaDS abundance_mean abundance_sigma growth_rate_mean growth_rate_sigma lambda_sigma alpha sequence_length mutation_rate sample_size obs_ntaxa obs_time ext_rate data tree
-    1 time 20 4.0 abundance False 50000 0.1 0.0 0.01 0.1 0.1 500 1e-05 10 23 4.095569867467191 0.0 r22:6866:0.3388888888888878:-0.0017392248027676867:0.9929405172387488,r21:3409:0.06493333333333326:0.0022979523708463396:1.044889056623618,r20:1361:0.04755555555555551:-0.0008304076216114711:1.028788037227819,r19:2153:0.047066666666666625:-0.0010936878297818674:0.9892171283717283,r18:2071:0.13764444444444443:-0.03602844187649056:1.2236414272712746,r17:1794:0.033111111111111105:0.010652702902916795:0.8841139779859748,r16:1600:0.04968888888888883:0.00022248012819702791:1.007759644044947,r15:206:0.016355555555555557:-0.0025001157661682927:1.0119988921069114,r14:121:0.0032:0.0028114408498106655:1.0150306188449219,r13:7176:0.1911555555555557:-0.0002989927924176867:1.0080428685670018,r12:57:0.0026222222222222224:0.0022534864488625425:1.0310102680219881,r11:233:0.015377777777777773:-0.0016532087475619054:0.9874506470688181,r10:2650:0.040133333333333306:0.0012761459270739734:0.9590447837930026,r9:1072:0.0538666666666666:0.0017936880382974293:1.047772584251838,r8:41:0.0010666666666666667:-0.00155993687616825:1.0010437225970643,r7:571:0.01613333333333333:-0.0011302498187538252:1.027807449254878,r6:131:0.005466666666666667:-0.0034603340148914993:0.9977304525473011,r5:2790:0.04586666666666664:-0.003898338884046415:0.9882789905775415,r4:972:0.022755555555555553:0.0009140839738056091:0.9665357418700201,r3:9040:0.27791111111111194:0.00047583092183889905:0.9715740561602696,r2:668:0.04315555555555552:0.0005252530117281093:0.9894320705866041,r1:4840:0.12311111111111138:-0.0002025660774967209:1.0244034979593213,r0:531:0.013777777777777774:0.001325242277879697:0.9853079841162011 ((r22:1.06953,(r21:0.410235,(r20:0.348699,r19:0.348699)0:0.0615366)0:0.659294)0:3.02604,((r18:3.28678,r17:3.28678)0:0.150255,((((r16:0.356944,((r15:0.1582,r14:0.1582)0:0.0917129,r13:0.249913)0:0.107031)0:0.388738,(r12:0.562355,(r11:0.169675,r10:0.169675)0:0.39268)0:0.183328)0:0.894806,(((r9:0.351402,(r8:0.170165,r7:0.170165)0:0.181237)0:0.395484,r6:0.746886)0:0.39907,(r5:0.7366,r4:0.7366)0:0.409356)0:0.494533)0:0.216775,(r3:0.860269,((r2:0.447829,r1:0.447829)0:0.328436,r0:0.776265)0:0.0840038)0:0.996995)0:1.57977)0:0.658533);
+    birth_rate stop_criterion ntaxa time process ClaDS abundance_mean abundance_sigma growth_rate_mean growth_rate_sigma ClaDS_sigma ClaDS_alpha sequence_length mutation_rate sample_size abundance_scaling obs_ntaxa obs_time turnover_rate data tree
+    1 taxa 20 4 abundance False 50000 0.1 0 0.01 0.1 0.1 500 1e-05 10 None 20 3.517589203795064 0.09523809523809523 r19:5277:0.20435555555555526:0.011195997657183444:1,r18:2348:0.05888888888888879:0.010817643664283555:1,r17:3445:0.1972000000000004:0.00976585185590869:1,r16:977:0.11759999999999997:0.00956274991175375:1,r15:61:0.0031999999999999997:0.011362725225983333:1,r14:16539:0.4827111111111095:0.017471769225183797:1,r13:23182:0.6710666666666577:0.021756148739551756:1,r12:348:0.005466666666666666:0.02736456054653283:1,r11:515:0.0124:0.03659168443387108:1,r10:2466:0.04511111111111108:0.03861433944456937:1,r9:52:0.001911111111111111:0.04392777318481233:1,r8:357:0.009111111111111113:0.027613860772168673:1,r7:15:0.0:0.025752062822845163:1,r6:36:0.0008:0.02570337859771903:1,r5:4:0.0:0.02775490802853657:1,r4:402:0.01315555555555556:0.03211086569690778:1,r3:492:0.015644444444444443:0.03210550065408781:1,r2:63:0.005777777777777779:0.027595814541259815:1,r1:21:0.002888888888888889:0.03269135509654675:1,r0:14:0.0013333333333333335:0.03347975613277858:1 (r19:3.51759,(((((r18:0.113701,r17:0.113701)0:0.200419,r16:0.31412)0:0.954493,r15:1.26861)0:1.12827,(r14:0.411902,r13:0.411902)0:1.98498)0:0.0985285,(r12:1.52255,(((r11:0.554776,r10:0.554776)0:0.14544,r9:0.700216)0:0.537912,((r8:0.422905,((r7:0.0129533,r6:0.0129533)0:0.373292,r5:0.386245)0:0.0366606)0:0.654669,((r4:0.000254136,r3:0.000254136)0:1.02896,(r2:0.572668,(r1:0.0912342,r0:0.0912342)0:0.481433)0:0.456547)0:0.0483598)0:0.160554)0:0.284423)0:0.972855)0:1.02218);
 
-The data for each simulation can be parsed in python like this:
-
-    simfile = "/path/to/default_iBioGen/wat-SIMOUT.csv"
-    sim_df = pd.read_csv(simfile, header=0, sep=" ")
-    sims = []
-    # There's probably a "fancier" way to do this, but this gets the job done
-    for rec in df["data"]:
-        # split the records for each species, separated by ','
-        dat = rec.split(",")
-        # Create a dictionary with species id as the key and the value is another
-        # dictionary mapping 'abundance', 'pi', 'r', & 'lambda_' to their respective
-        # values per species.
-        dat = {x:{"abundance":int(y), "pi":float(z), "r":float(aa), "lambda_":float(bb)} for x, y, z, aa, bb in map(lambda x: x.split(":"), dat)}
-        # append this dictionary to the sims list
-        sims.append(dat)
+We provide a convenience function in the API mode for parsing the output file
+format (see `iBioGen.util.load_sims()).
 
 ## Default CLI args
 The default CLI will parse a handful of universally useful arguments:
@@ -91,3 +79,47 @@ The default CLI will parse a handful of universally useful arguments:
 Long form arguments:
 
 * `--ipcluster <cluster_id>`    Pass in the cluster ID of a running ipcluster instance
+
+# iBioGen API R bindings
+The iBioGen native client is a standalone command line program, but it offers
+a rich API mode which is available by using the R/python interoperability library
+[reticluate](https://rstudio.github.io/reticulate/). The first step is installing
+iBioGen through conda as explained above. We give example workflows in R here:
+
+## Serial Simulations
+In the simplest case, you may run simulations serially:
+
+    install.packages("reticulate")
+    library(reticulate)
+
+    # import the iBioGen python module
+    iBioGen <- import("iBioGen")
+
+    # Create a new iBioGen `Core` object passing in a name
+    core = iBioGen$Core("watdo")
+
+    # Print the default parameters
+    core$get_params(verbose=TRUE)
+
+    # Set a few parameters
+    core$set_param("ClaDS", TRUE)
+    core$set_param("ClaDS_alpha", 0.8)
+
+    # In the simplest case you can call the simulate() method, passing in
+    # the number of simulations you'd like to perform.
+    core$simulate(nsims=2)
+
+    # By default simulations are written to a file, but these can be easily
+    # loaded into rstudio with the load_sims() command. load_sims() returns
+    # a 'tuple', with the first element being the simulation parameters per
+    # sim and the second element being the simulated data.
+    res = core$load_sims()
+
+    # Access the simulation parameters
+    print(res[1])
+
+## Parallel Simulations
+When running numerous jobs it can speed up simulations by parallelizing the
+jobs across the available cores on your computer.
+
+
