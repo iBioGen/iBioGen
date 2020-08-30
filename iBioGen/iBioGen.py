@@ -184,7 +184,10 @@ class Core(object):
                 self.paramsdict[param] = newvalue
             elif param == "ClaDS":
                 try:
-                    self.paramsdict[param] = ast.literal_eval(newvalue)
+                    if isinstance(newvalue, bool):
+                        self.paramsdict[param] = newvalue
+                    else:
+                        self.paramsdict[param] = ast.literal_eval(newvalue)
                 except ValueError:
                     raise iBioGenError("Bad parameter: `ClaDS` must be `True` or "\
                                     + "`False`.")
