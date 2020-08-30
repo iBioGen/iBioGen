@@ -92,6 +92,9 @@ In the simplest case, you may run simulations serially:
     install.packages("reticulate")
     library(reticulate)
 
+    # Tell reticluate to use the iBioGen conda env (rather than the default)
+    use_condaenv("iBioGen")
+
     # import the iBioGen python module
     iBioGen <- import("iBioGen")
 
