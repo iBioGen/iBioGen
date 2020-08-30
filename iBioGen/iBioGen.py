@@ -399,6 +399,16 @@ class Core(object):
         return null
 
 
+    def load_sims(self):
+        """Convenience function for reading in simulations."""
+        try:
+            if self.simfile:
+                params, sims = iBioGen.load_sims(self.simfile)
+        except Exception as inst:
+            raise iBioGenError("simfile does not exist. You must run `simulate()` first.")
+        return params, sims
+
+
     def parallel_simulate(self, ipyclient, nsims=1, quiet=False, verbose=False):
         parallel_jobs = {}
         _ipcluster = {}
