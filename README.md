@@ -50,7 +50,7 @@ Run 10 simulations on 10 cores in parallel:
 
 ## Output
 Results are written to `<project_dir>/<simulation_name>` (so in the example:
-`default_iBioGen/wat-SIMOUT.csv`. Not generally human readable the results
+`default_iBioGen/wat-SIMOUT.csv`). Not generally human readable the results
 file contains the parameters used to generate each simulation, as well as the
 observed numbers of tips, the observed simulation time, and the calculated
 extinction rate (as a fraction of birth events), data for each tip, including
