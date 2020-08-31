@@ -49,7 +49,6 @@ sim_tree <- function(simulation_name = 'my_sim',
 
     library(reticulate)
     tryCatch({
-        print("  Search iBioGen backend.")
         conda_version()
     }, error = function(err) {
         print("  First run configuring iBioGen library.")
