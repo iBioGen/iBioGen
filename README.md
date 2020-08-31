@@ -46,7 +46,7 @@ res = iBioGen::sim_tree(birth_rate=2, ClaDS=TRUE, ClaDS_alpha=0.7, ntaxa=300)
 **NB:** The first time you run `sim_tree()` there is a little housekeeping which
 can take ~5 minutes. This only happens once.
 
-## Command Line standalone version
+## Command line standalone version
 The iBioGen package also exists as a standalone command line utility written
 in python. The CLI provides a number of benefits including massive parallelization.
 
