@@ -2,6 +2,14 @@
 # iBioGen
 Software for the study of island biodiversity dynamics from genomic data.
 
+This software is an outcome of iBioGen, an EU-funded (Horizon 2020) project,
+focused on island biodiversity genomics. Our network promotes an
+interdisciplinary approach to island biodiversity research, as we recognise
+the great potential of novel DNA methodology for island biodiversity research
+and the need for methodological unification and theoretical synthesis in this
+new field. For more information about the project please visit the website:
+https://www.ibiogen.eu/
+
 ## Distribution
 The iBioGen package is distributed in a couple different formats, so please
 choose what serves your needs best:
