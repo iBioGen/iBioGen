@@ -27,11 +27,11 @@ library(iBioGen)
 
 ### R Package Usage
 The iBioGen R package currently has one very feature rich function `sim_tree()`.
-This function takes numerous different arguments to parameterize the simulations,
-and returns an matrix of simulation results, with one line per simulation, and 
-each line containing both the parameters and the data generated (for more details
-see the **Output** section below). Here we demonstrate a few different simulation
-parameters (you may invoke `?sim_tree` in the normal way for detailed help info):
+This function takes numerous arguments to parameterize the simulations, and
+returns a matrix of simulation results, with simulations on the rows, and parameters
+and data generated on the columns (for more details see the **[Output](#output)**
+section below). Here we demonstrate a few different simulation parameters (you may
+invoke `?sim_tree` in the normal way for detailed help info):
 
 ```
 # Generate 5 simulations and store the results in `res`
