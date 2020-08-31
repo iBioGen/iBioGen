@@ -68,7 +68,7 @@ sim_tree <- function(simulation_name = 'my_sim',
         pyBioGen <- import("iBioGen")
     }, error = function(err) {
         print("  Error in loading iBioGen backend.")
-        print(" " + err)
+        print(paste(" ", err))
         # Do sttuff here
     })
 
