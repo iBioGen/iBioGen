@@ -48,8 +48,29 @@ sim_tree <- function(simulation_name = 'my_sim',
                      quiet = FALSE){
 
     library(reticulate)
+    tryCatch({
+        print("  Search iBioGen backend.")
+        conda_version()
+    }, error = function(err) {
+        print("  First run configuring iBioGen library.")
+        print("  This could take 5-10 minutes.")
+        print("  Installing miniconda")
+        install_miniconda()
+        print("  Installing iBioGen backend.")
+        conda_install("r-reticulate",
+                      packages="ibiogen",
+                      channel=c("conda-forge", "iBioGen"),
+                      python_version=3.7)
+    })
+
     # import the iBioGen python module
-    pyBioGen <- import("iBioGen")
+    tryCatch({
+        pyBioGen <- import("iBioGen")
+    }, error = function(err) {
+        print("  Error in loading iBioGen backend.")
+        print(" " + err)
+        # Do sttuff here
+    })
 
     # Create a new iBioGen `Core` object passing in a name
     core = pyBioGen$Core("watdo")
