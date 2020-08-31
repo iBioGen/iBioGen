@@ -4,27 +4,13 @@
 \alias{sim_tree}
 \title{Simulate a phylogeny with abundance and genetic diversity at the tips}
 \usage{
-sim_tree(
-  simulation_name = "my_sim",
-  project_dir = "./default_iBioGen",
-  birth_rate = 1,
-  stop_criterion = "taxa",
-  ntaxa = 20,
-  time = 4,
-  process = "rate",
-  ClaDS = FALSE,
-  abundance_mean = 5e+05,
-  abundance_sigma = 0.1,
-  growth_rate_mean = 0,
-  growth_rate_sigma = 0.01,
-  ClaDS_sigma = 0.9,
-  ClaDS_alpha = 0.1,
-  sequence_length = 1000,
-  mutation_rate = 1e-07,
-  sample_size = 10,
-  abundance_scaling = "None",
-  nsims = 1
-)
+sim_tree(simulation_name = "my_sim", project_dir = "./default_iBioGen",
+  birth_rate = 1, stop_criterion = "taxa", ntaxa = 20, time = 4,
+  process = "rate", ClaDS = FALSE, abundance_mean = 5e+05,
+  abundance_sigma = 0.1, growth_rate_mean = 0,
+  growth_rate_sigma = 0.01, ClaDS_sigma = 0.9, ClaDS_alpha = 0.1,
+  sequence_length = 1000, mutation_rate = 1e-07, sample_size = 10,
+  abundance_scaling = "None", nsims = 1, quiet = FALSE)
 }
 \arguments{
 \item{simulation_name}{The name of this simulation scenario}
@@ -64,9 +50,22 @@ sim_tree(
 \item{abundance_scaling}{Scaling abundance to Ne. Can be None, log, ln or a ratio}
 
 \item{nsims}{Number of independent simulations to perform}
+
+\item{quiet}{Suppress printing the progress bar}
 }
 \description{
-This function allows you to express your love of cats.
+Simulate a phylogeny with abundance and genetic diversity at the tips
+}
+\details{
+A birth/death process with abundances and genetic diversity at the tips.
+Abundance can evolve either as a BM process with random fission at speciation
+events, or the rate of change (r) of abundance can evolve as BM in which case
+abundance (n) changes through time (dt) via n * exp(r*dt). Speciation rate
+can also shift at branching events in the manner of ClaDS.
+
+The iBioGen package is a product of the iBioGen project, an EU-funded
+(Horizon 2020) project, focused on island biodiversity genomics. More details
+about the project can be found on the website: https://www.ibiogen.eu/
 }
 \examples{
 sim_tree() 
