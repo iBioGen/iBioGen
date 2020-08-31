@@ -1,5 +1,3 @@
-library(reticulate)
-
 
 #' Simulate a phylogeny with abundance and genetic diversity at the tips
 #'
@@ -49,6 +47,7 @@ sim_tree <- function(simulation_name = 'my_sim',
                      nsims = 1,
                      quiet = FALSE){
 
+    library(reticulate)
     # import the iBioGen python module
     pyBioGen <- import("iBioGen")
 
