@@ -1,10 +1,6 @@
 
 # iBioGen
-A birth/death process with abundances and genetic diversity at the tips. 
-Abundance can evolve either as a BM process with random fission at speciation
-events, or the rate of change (r) of abundance can evolve as BM in which case
-abundance (n) changes through time (dt) via `n * exp(r*dt)`. Speciation rate
-can also shift at branching events in the manner of ClaDS. 
+Software for the study of island biodiversity dynamics from genomic data.
 
 ## Distribution
 The iBioGen package is distributed in a couple different formats, so please
