@@ -6,6 +6,12 @@ events, or the rate of change (r) of abundance can evolve as BM in which case
 abundance (n) changes through time (dt) via `n * exp(r*dt)`. Speciation rate
 can also shift at branching events in the manner of ClaDS. 
 
+## Distribution
+The iBioGen package is distributed in a couple different formats, so please
+choose what serves your needs best:
+ * [R package](#r-package)
+ * [CLI/Python API](#command-line-standalone-version)
+
 ## R Package
 
 ### R Package Installation
@@ -40,8 +46,8 @@ res = iBioGen::sim_tree(birth_rate=2, ClaDS=TRUE, ClaDS_alpha=0.7, ntaxa=300)
 
 
 
-## Command Line stand-alone version
-The iBioGen package also exists as a stand-alone command line utility written
+## Command Line standalone version
+The iBioGen package also exists as a standalone command line utility written
 in python. The CLI provides a number of benefits including massive parallelization.
 
 ### Installation
