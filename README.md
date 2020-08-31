@@ -43,8 +43,8 @@ res = iBioGen::sim_tree(ntaxa=200)
 # Simulate 1 tree with 300 tips using birth_rate of 2 with the ClaDS model enabled
 res = iBioGen::sim_tree(birth_rate=2, ClaDS=TRUE, ClaDS_alpha=0.7, ntaxa=300)
 ```
-
-
+**NB:** The first time you run `sim_tree()` there is a little housekeeping which
+can take ~5 minutes. This only happens once.
 
 ## Command Line standalone version
 The iBioGen package also exists as a standalone command line utility written
