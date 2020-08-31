@@ -196,6 +196,9 @@ class Core(object):
                     self.paramsdict[param] = newvalue
                 else:
                     try:
+                        if float(newvalue) <= 0:
+                            raise iBioGenError("Bad parameter: `abundance_scaling`"\
+                                        +"must be strictly positive. You put: {}".format(newvalue))
                         self.paramsdict[param] = float(newvalue)
                     except ValueError:
                         raise iBioGenError("Bad parameter: `abundance_scaling` must be "\
