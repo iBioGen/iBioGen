@@ -6,9 +6,82 @@ events, or the rate of change (r) of abundance can evolve as BM in which case
 abundance (n) changes through time (dt) via `n * exp(r*dt)`. Speciation rate
 can also shift at branching events in the manner of ClaDS. 
 
+# R Package
+
+## R Package Installation
+The iBioGen R package can be installed using `devtools::install_github` while
+we navigate the CRAN submission process.
+
+```
+install.packages("devtools")
+library(devtools)
+install_github("iBioGen/iBioGen")
+library(iBioGen)
+```
+
+## R Package Usage
+The iBioGen R package currently has one very feature rich function `sim_tree()`.
+This function takes numerous different arguments to parameterize the simulations,
+and returns an matrix of simulation results, with one line per simulation, and 
+each line containing both the parameters and the data generated (for more details
+see the **Output** section below). Here we demonstrate a few different simulation
+parameters (you may invoke `?sim_tree` in the normal way for detailed help info):
+
+```
+# Generate 5 simulations and store the results in `res`
+res = iBioGen::sim_tree(nsims=5)
+
+# Generate 1 simulation with 200 tips
+res = iBioGen::sim_tree(ntaxa=200)
+
+# Simulate 1 tree with 300 tips using birth_rate of 2 with the ClaDS model enabled
+res = iBioGen::sim_tree(birth_rate=2, ClaDS=TRUE, ClaDS_alpha=0.7, ntaxa=300)
+```
+
+## iBioGen API R bindings
+The iBioGen native client is a standalone command line program, but it offers
+a rich API mode which is available by using the R/python interoperability library
+[reticluate](https://rstudio.github.io/reticulate/). The API mode gives
+much more flexibility for and allows for reproducibility in RMarkdown or juypter.
+
+### Serial Simulations
+In the simplest case, you may run simulations serially:
+
+    library(reticulate)
+
+    # import the iBioGen python module
+    iBioGen <- import("iBioGen")
+
+    # Create a new iBioGen `Core` object passing in a name
+    core = iBioGen$Core("watdo")
+
+    # Print the default parameters
+    core$get_params(verbose=TRUE)
+
+    # Set a few parameters
+    core$set_param("ClaDS", TRUE)
+    core$set_param("ClaDS_alpha", 0.8)
+
+    # In the simplest case you can call the simulate() method, passing in
+    # the number of simulations you'd like to perform.
+    core$simulate(nsims=2)
+
+    # By default simulations are written to a file, but these can be easily
+    # loaded into rstudio with the load_sims() command. load_sims() returns
+    # a 'tuple', with the first element being the simulation parameters per
+    # sim and the second element being the simulated data.
+    res = core$load_sims()
+
+    # Access the simulation parameters
+    print(res[1])
+
+# Command Line stand-alone version
+The iBioGen package also exists as a stand-alone command line utility written
+in python. The CLI provides a number of benefits including massive parallelization.
+
 ## Installation
 
-* Install [conda](https://docs.conda.io/en/latest/miniconda.html)  for python3
+* Install [conda](https://docs.conda.io/en/latest/miniconda.html) for python3
 * `conda create -n iBioGen python=3.7`
 * `conda activate iBioGen`
 * `conda install -c conda-forge -c iovercast ibiogen`
@@ -79,50 +152,5 @@ The default CLI will parse a handful of universally useful arguments:
 Long form arguments:
 
 * `--ipcluster <cluster_id>`    Pass in the cluster ID of a running ipcluster instance
-
-# iBioGen API R bindings
-The iBioGen native client is a standalone command line program, but it offers
-a rich API mode which is available by using the R/python interoperability library
-[reticluate](https://rstudio.github.io/reticulate/). The first step is installing
-iBioGen through conda as explained above. We give example workflows in R here:
-
-## Serial Simulations
-In the simplest case, you may run simulations serially:
-
-    install.packages("reticulate")
-    library(reticulate)
-
-    # Tell reticluate to use the iBioGen conda env (rather than the default)
-    use_condaenv("iBioGen")
-
-    # import the iBioGen python module
-    iBioGen <- import("iBioGen")
-
-    # Create a new iBioGen `Core` object passing in a name
-    core = iBioGen$Core("watdo")
-
-    # Print the default parameters
-    core$get_params(verbose=TRUE)
-
-    # Set a few parameters
-    core$set_param("ClaDS", TRUE)
-    core$set_param("ClaDS_alpha", 0.8)
-
-    # In the simplest case you can call the simulate() method, passing in
-    # the number of simulations you'd like to perform.
-    core$simulate(nsims=2)
-
-    # By default simulations are written to a file, but these can be easily
-    # loaded into rstudio with the load_sims() command. load_sims() returns
-    # a 'tuple', with the first element being the simulation parameters per
-    # sim and the second element being the simulated data.
-    res = core$load_sims()
-
-    # Access the simulation parameters
-    print(res[1])
-
-## Parallel Simulations
-When running numerous jobs it can speed up simulations by parallelizing the
-jobs across the available cores on your computer.
 
 
