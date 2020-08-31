@@ -125,10 +125,11 @@ Long form arguments:
 * `--ipcluster <cluster_id>`    Pass in the cluster ID of a running ipcluster instance
 
 ## (Advanced Topics) iBioGen API R bindings
-The iBioGen native client is a standalone command line program, but it offers
-a rich API mode which is available by using the R/python interoperability library
-[reticluate](https://rstudio.github.io/reticulate/). The API mode gives
-much more flexibility for and allows for reproducibility in RMarkdown or juypter.
+The iBioGen native client (installed through conda) is a standalone command line
+program, but it offers a rich API mode which is available by using the R/python
+interoperability library [reticluate](https://rstudio.github.io/reticulate/).
+The API mode gives much more flexibility and allows for reproducibility in
+RMarkdown or juypter.
 
 ### Serial Simulations
 In the simplest case, you may run simulations serially:
