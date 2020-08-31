@@ -1,0 +1,26 @@
+Package: iBioGen
+Title: Island biodiversity genomics simulations and analysis
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Isaac",
+           family = "Overcast",
+           role = c("aut", "cre"),
+           email = "overcast@biologie.ens.fr",
+           comment = c(ORCID = "0000-0001-8614-6892"))
+Description: A birth/death process with abundances and genetic diversity at the
+    tips. Abundance can evolve either as a BM process with random fission at
+    speciation events, or the rate of change (r) of abundance can evolve as BM
+    in which case abundance (n) changes through time (dt) via n * exp(r*dt).
+    Speciation rate can also shift at branching events in the manner of ClaDS.
+Config/reticulate:
+  list(
+    packages = list(
+      list(package = "scipy")
+    )
+  )
+Imports: reticulate
+License: `use_gpl3_license()`
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
