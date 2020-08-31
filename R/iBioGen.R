@@ -1,7 +1,16 @@
 
 #' Simulate a phylogeny with abundance and genetic diversity at the tips
 #'
-#' This function allows you to express your love of cats.
+#' @details
+#' A birth/death process with abundances and genetic diversity at the tips.
+#' Abundance can evolve either as a BM process with random fission at speciation
+#' events, or the rate of change (r) of abundance can evolve as BM in which case
+#' abundance (n) changes through time (dt) via n * exp(r*dt). Speciation rate
+#' can also shift at branching events in the manner of ClaDS.
+#'
+#' The iBioGen package is a product of the iBioGen project, an EU-funded
+#' (Horizon 2020) project, focused on island biodiversity genomics. More details
+#' about the project can be found on the website: https://www.ibiogen.eu/
 #' @param simulation_name The name of this simulation scenario
 #' @param project_dir Where to save files.
 #' @param birth_rate Speciation rate
