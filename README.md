@@ -6,14 +6,58 @@ events, or the rate of change (r) of abundance can evolve as BM in which case
 abundance (n) changes through time (dt) via `n * exp(r*dt)`. Speciation rate
 can also shift at branching events in the manner of ClaDS. 
 
-## Installation
+## Distribution
+The iBioGen package is distributed in a couple different formats, so please
+choose what serves your needs best:
+ * [R package](#r-package)
+ * [CLI/Python API](#command-line-standalone-version)
 
-* Install [conda](https://docs.conda.io/en/latest/miniconda.html)  for python3
+## R Package
+
+### R Package Installation
+The iBioGen R package can be installed using `devtools::install_github` while
+we navigate the CRAN submission process.
+
+```
+install.packages("devtools")
+library(devtools)
+install_github("iBioGen/iBioGen")
+library(iBioGen)
+```
+
+### R Package Usage
+The iBioGen R package currently has one very feature rich function `sim_tree()`.
+This function takes numerous arguments to parameterize the simulations, and
+returns a matrix of simulation results, with simulations on the rows, and parameters
+and data generated on the columns (for more details see the **[Output](#output)**
+section below). Here we demonstrate a few different simulation parameters (you may
+invoke `?sim_tree` in the normal way for detailed help info):
+
+```
+# Generate 5 simulations and store the results in `res`
+res = iBioGen::sim_tree(nsims=5)
+
+# Generate 1 simulation with 200 tips
+res = iBioGen::sim_tree(ntaxa=200)
+
+# Simulate 1 tree with 300 tips using birth_rate of 2 with the ClaDS model enabled
+res = iBioGen::sim_tree(birth_rate=2, ClaDS=TRUE, ClaDS_alpha=0.7, ntaxa=300)
+```
+**NB:** The first time you run `sim_tree()` there is a little housekeeping which
+can take ~5 minutes. This only happens once.
+
+## Command line standalone version
+The iBioGen package also exists as a standalone command line utility written
+in python. The CLI provides a number of benefits including massive parallelization.
+
+### Installation
+
+* Install [conda](https://docs.conda.io/en/latest/miniconda.html) for python3
 * `conda create -n iBioGen python=3.7`
 * `conda activate iBioGen`
 * `conda install -c conda-forge -c iovercast ibiogen`
 
-## Command Line Usage
+### Command Line Usage
 Create a params file:
 
     iBioGen -n wat
@@ -48,7 +92,7 @@ Run 10 simulations on 10 cores in parallel:
 
     iBioGen -p params-wat.txt -s 10 -c 10
 
-## Output
+### Output
 Results are written to `<project_dir>/<simulation_name>` (so in the example:
 `default_iBioGen/wat-SIMOUT.csv`). Not generally human readable the results
 file contains the parameters used to generate each simulation, as well as the
@@ -80,20 +124,17 @@ Long form arguments:
 
 * `--ipcluster <cluster_id>`    Pass in the cluster ID of a running ipcluster instance
 
-# iBioGen API R bindings
-The iBioGen native client is a standalone command line program, but it offers
-a rich API mode which is available by using the R/python interoperability library
-[reticluate](https://rstudio.github.io/reticulate/). The first step is installing
-iBioGen through conda as explained above. We give example workflows in R here:
+## (Advanced Topics) iBioGen API R bindings
+The iBioGen native client (installed through conda) is a standalone command line
+program, but it offers a rich API mode which is available by using the R/python
+interoperability library [reticluate](https://rstudio.github.io/reticulate/).
+The API mode gives much more flexibility and allows for reproducibility in
+RMarkdown or juypter.
 
-## Serial Simulations
+### Serial Simulations
 In the simplest case, you may run simulations serially:
 
-    install.packages("reticulate")
     library(reticulate)
-
-    # Tell reticluate to use the iBioGen conda env (rather than the default)
-    use_condaenv("iBioGen")
 
     # import the iBioGen python module
     iBioGen <- import("iBioGen")
@@ -120,9 +161,3 @@ In the simplest case, you may run simulations serially:
 
     # Access the simulation parameters
     print(res[1])
-
-## Parallel Simulations
-When running numerous jobs it can speed up simulations by parallelizing the
-jobs across the available cores on your computer.
-
-
