@@ -306,7 +306,7 @@ BAD_PARAMETER_ERROR = """
 iBioGen_HEADER = \
 "\n -------------------------------------------------------------"+\
 "\n  iBioGen [v.{}]".format(iBioGen.__version__)+\
-"\n  PhIgurE out an acronymD"+\
+"\n  Island Biodiversity Genomics Analysis Toolkit"+\
 "\n -------------------------------------------------------------"
 
 
