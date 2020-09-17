@@ -7,6 +7,30 @@ by the European Union’s Horizon 2020 research and innovation programme under
 grant agreement No 810729. For more information please visit the project
 website: https://www.ibiogen.eu/
 
+## Major Components
+The iBioGen package is composed of a suite of tools for studying ecological,
+evolutionary, and multi-scale processes within island communities. Major components
+of the package include:
+
+### A joint model of macroevolution and abundance/genetic diversity
+A model for studying diversification patterns, abundance distributions, and
+community-scale genetic data of island radiations. The model predicts phylogenies
+under a birth/death process with abundances evolved along the branches, and
+genetic diversity calculated based on historical changes of abundance through time.
+Abundance can evolve in one of two ways: 1) as a BM process with random fission
+at speciation events (ancestral abundance is randomly split between the
+two descendant lineages), or 2) the rate of change (r) of abundance can evolve as BM
+in which case abundance (n) changes through time (dt) via n * exp(r*dt). The speciation
+rate can also shift at branching events in the manner of ClaDS (Maliet et al 2019).
+
+This is a stochastic simulation model, so parameters (or parameter ranges) are specified
+and numerous simulations may be generated. For each simulation the model outputs a dated
+phylogenetic tree, and abundance, genetic diversity, and trait values for each species
+(currently only neutral traits are supported). In the simplest case simulations can be
+used to characterize joint patterns in the data under various parameterizations.
+Simulations can also be used to estimate model parameters from empirical data, for
+example by using approximate Bayesian computation or a machine learning approach.
+
 ## Distribution
 The iBioGen package is distributed in a couple different formats, so please
 choose what serves your needs best:
