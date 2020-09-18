@@ -17,11 +17,13 @@ A model for studying diversification patterns, abundance distributions, and
 community-scale genetic data of island radiations. The model predicts phylogenies
 under a birth/death process with abundances evolved along the branches, and
 genetic diversity calculated based on historical changes of abundance through time.
-Abundance can evolve in one of two ways: 1) as a BM process with random fission
-at speciation events (ancestral abundance is randomly split between the
-two descendant lineages), or 2) the rate of change (r) of abundance can evolve as BM
-in which case abundance (n) changes through time (dt) via n * exp(r*dt). The speciation
-rate can also shift at branching events in the manner of ClaDS (Maliet et al 2019).
+Abundance can evolve in one of two ways: 1) as a BM process where abundance (n) after
+time (dt) is sampled from a normal distribution with mean n and standard deviation 
+sigma * dt (where sigma is a model parameter), or 2) the rate of change (r) of abundance
+can evolve as BM in which case abundance (n) changes through time (dt) via n * exp(r\*dt).
+The speciation rate can also shift at branching events in the manner of ClaDS (Maliet et al 2019).
+In either case abundances are split by random fission at speciation events (ancestral abundance
+is randomly split between the two descendant lineages)
 
 This is a stochastic simulation model, so parameters (or parameter ranges) are specified
 and numerous simulations may be generated. For each simulation the model outputs a dated
