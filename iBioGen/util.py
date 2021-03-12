@@ -161,9 +161,13 @@ def set_params(data, param, newvalue, quiet=True):
     return data
 
 
-def load_sims(sims, sep=" "):
+def load_sims(sims, sep=" ", calc_slopes=True):
     """
     Load simulations either from a dataframe or from a file.
+
+    calc_slopes:    Calculate slope of pi/speciation rate regression and
+                    whether or not the slope is significantly different
+                    from zero using a permutation approach.
     """
     if isinstance(sims, str):
         sim_df = pd.read_csv(sims, sep=sep, header=0)
@@ -179,8 +183,9 @@ def load_sims(sims, sep=" "):
             sims.append(dat)
         dat_df = pd.DataFrame(sims)
 
-        params_df["pi_lambda_slope"] = dat_df.apply(_slope, axis=1)
-        params_df["slope_sign"] = dat_df.apply(_test_significance, axis=1)
+        if calc_slopes:
+            params_df["pi_lambda_slope"] = dat_df.apply(_slope, axis=1)
+            params_df["slope_sign"] = dat_df.apply(_test_significance, axis=1)
     else:
         raise iBioGenError("Input simulations not understood. Must be a file name or a pandas DataFrame")
     return params_df, dat_df
