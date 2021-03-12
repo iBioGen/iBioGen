@@ -10,6 +10,8 @@ import shlex
 import subprocess
 import sys
 
+from sklearn.linear_model import LinearRegression
+
 LOGGER = logging.getLogger(__name__)
 
 ## Custom exception class
@@ -167,7 +169,7 @@ def load_sims(sims, sep=" "):
         sim_df = pd.read_csv(sims, sep=sep, header=0)
         # Get the nicely formatted params and stats
         # Carve off the last two elements which are data and the tree
-        params_df = sim_df[sim_df.columns[:-2]]
+        params_df = sim_df.loc[:, sim_df.columns[:-2]]
 
         sims = []
         for rec in sim_df["data"]:
@@ -176,9 +178,47 @@ def load_sims(sims, sep=" "):
             dat = {x:{"abundance":int(y), "pi":float(z), "r":float(aa), "lambda_":float(bb)} for x, y, z, aa, bb in map(lambda x: x.split(":"), dat)}
             sims.append(dat)
         dat_df = pd.DataFrame(sims)
+
+        params_df["pi_lambda_slope"] = dat_df.apply(_slope, axis=1)
+        params_df["slope_sign"] = dat_df.apply(_test_significance, axis=1)
     else:
         raise iBioGenError("Input simulations not understood. Must be a file name or a pandas DataFrame")
     return params_df, dat_df
+
+
+def _slope(data):
+    """
+    Calculate the slope of the regression between pi and speciation rate.
+    Input is one row of data from a simulation
+    """
+    pis = np.array([x["pi"] for x in data])
+    lambdas = np.array([x["lambda_"] for x in data])
+    rgr = LinearRegression().fit(pis.reshape(-1, 1),
+                                 lambdas.reshape(-1, 1))
+    return rgr.coef_[0][0]
+
+
+def _test_significance(data, replicates=100):
+    rng = np.random.default_rng()
+    sl = _slope(data)
+
+    pis = np.array([x["pi"] for x in data])
+    lambdas = np.array([x["lambda_"] for x in data])
+
+    reps = []
+    for rep in range(replicates):
+        rng.shuffle(pis)
+        rgr = LinearRegression().fit(pis.reshape(-1, 1),
+                                 lambdas.reshape(-1, 1))
+        reps.append(rgr.coef_[0][0])
+    lower, upper = np.quantile(reps, [0.025, 0.975])
+
+    if sl < lower:
+        return "negative"
+    if sl > upper:
+        return "positive"
+    else:
+        return "zero"
 
 
 ## Error messages
