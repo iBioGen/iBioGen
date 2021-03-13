@@ -104,10 +104,14 @@ class Core(object):
         ##          abundances become infinite and it flips the board.
         ## harmonic_mean - Whether to take the harmonic mean of changing abundance
         ##                 through time, or simply use current abundance as Ne
+        ## K - Carrying capacity for any given species. This value should
+        ##     be absurdly large, but not so large that it overflows int64
+        ##     which crashes numpy and causes problems generating pi.
         self._hackersonly = dict([
-                        ("max_theta", 0.7),
+                        ("max_theta", 0.1),
                         ("max_t", 3000),
                         ("harmonic_mean", True),
+                        ("K", 1e10),
         ])
 
 
@@ -603,9 +607,14 @@ class Core(object):
                 if self.paramsdict["process"] == "rate":
                     # Apply the population size change
                     try:
-                        x.abundance = int(x.abundance * (np.exp(x.r*dt)))
+                        # Continuous model of logistic growth:
+                        # https://greenteapress.com/modsimpy/ModSimPy3.pdf
+                        x.abundance = int(self._hackersonly["K"]/(1+((self._hackersonly["K"]-x.abundance)/x.abundance)*np.exp(-x.r*dt)))
+
+                        # Exponential growth
+                        # x.abundance = int(x.abundance * np.exp(x.r*dt))
                     except Exception as inst:
-                        raise iBioGenError("Abundance is too big: {}".format(x.abundance))
+                        raise iBioGenError("Error in abundance change: {}\n{}".format(x.abundance, inst))
                 ## Record abundance through time
                 x.abunds.append(x.abundance)
 
@@ -651,12 +660,16 @@ class Core(object):
 
                 ## Scale abundance to Ne for each tip. The call to _scale_abundance
                 ## returns the tip with Ne/Nes set
-                tips = [_scale_abundance(t, self.paramsdict["abundance_scaling"]) for t in tips]
+                max_Ne = self._hackersonly["max_theta"] / (2 * self.paramsdict["mutation_rate"])
+                tips = [_scale_abundance(t,
+                                        max_Ne,
+                                        self.paramsdict["abundance_scaling"]
+                                        ) for t in tips]
 
                 ## Test for 'reasonable' theta values. If theta gets too large
                 ## two things happen: biologically meaningless pi values, and
                 ## runtime of msprime _explodes_.
-                thetas = np.array([x.Ne * self.paramsdict["mutation_rate"] for x in tips])
+                thetas = np.array([2 * x.Ne * self.paramsdict["mutation_rate"] for x in tips])
                 if np.any(thetas > self._hackersonly["max_theta"]):
                     raise iBioGenError(MAX_THETA_ERROR.format(self._hackersonly["max_theta"],\
                                                             np.max(thetas)))
@@ -668,6 +681,8 @@ class Core(object):
                     tip.pi = nucleotide_diversity(self.paramsdict,
                                                     node=tip,
                                                     harmonic=self._hackersonly["harmonic_mean"])
+#                    if tip.pi > 0.1:
+#                        import pdb; pdb.set_trace()
                 ## Build the output list to return which will include
                 ##  * parameters of the model
                 ##  * observed ntaxa and time, and calculated extinction rate
@@ -770,7 +785,7 @@ def serial_simulate(model, nsims=1, quiet=False, verbose=False):
 ###########################
 ## Random utility functions
 ###########################
-def _scale_abundance(tip, abundance_scaling):
+def _scale_abundance(tip, max_Ne, abundance_scaling):
     if abundance_scaling == "None":
         tip.Ne = tip.abundance
         tip.Nes = tip.abunds
@@ -783,6 +798,10 @@ def _scale_abundance(tip, abundance_scaling):
     else:
         tip.Ne = tip.abundance * abundance_scaling
         tip.Nes = [x * abundance_scaling for x in tip.abunds]
+
+    ## Enforce upper bound on max_theta
+    tip.Ne = np.min([tip.Ne, max_Ne])
+    tip.Nes = [np.min([x, max_Ne]) for x in tip.abunds]
     return tip
 
 
