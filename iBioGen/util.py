@@ -183,6 +183,12 @@ def load_sims(sims, sep=" ", calc_slopes=True):
             sims.append(dat)
         dat_df = pd.DataFrame(sims)
 
+        # Hill numbers for pi and abundance
+        for i in range(1, 4):
+            params_df[f"abund_h{i}"] = dat_df.apply(_hill_number, order=i, axis=1)
+        for i in range(1, 4):
+            params_df[f"pi_h{i}"] = dat_df.apply(_hill_number, pi=True, order=i, axis=1)
+
         if calc_slopes:
             params_df["pi_lambda_slope"] = dat_df.apply(_slope, axis=1)
             params_df["slope_sign"] = dat_df.apply(_test_significance, axis=1)
@@ -224,6 +230,76 @@ def _test_significance(data, replicates=100):
         return "positive"
     else:
         return "zero"
+
+
+def _hill_number(data, pi=False, order=1):
+    """
+    Calculate hill numbers from a row of simulation data
+
+    :param array-like data: A row of simulated data from the output file
+    :param bool pi: If true, calculate the hill numbers for genetic data
+    :param int order: The order of the hill number to calculate
+    """
+
+    pis = None
+    if pi:
+        pis = np.array([x["pi"] for x in data])
+
+    abundance = np.array([x["abundance"] for x in data])
+
+    return _generalized_hill_number(abundance, vals=pis, order=order)
+
+
+def _generalized_hill_number(abunds, vals=None, order=1, scale=True, verbose=False):
+    """
+    This is the Chao et al (2014) generalized Hill # formula. Generalized
+    function to calculate one Hill number from a distribution of values of
+    some statistic and abundances.
+
+    :param array-like abunds: An `array-like` of abundances per species.
+    :param array-like vals: An `array-like` of values per species (e.g.
+        pi values per species, or trait values per species). If this parameter
+        is empty then only abundance Hill numbers are calculated.
+    :param float order: The Hill number to calculate. 0 is species richness.
+        Positive values calculate Hill numbers placing increasing weight on
+        the most abundant species. Negative values can also be specified
+        (placing more weight on the rare species), but these are uncommonly
+        used in practice.
+    :param bool scale: Whether to scale to effective numbers of species, or
+        return the raw attribute diversity. Equivalent to equation 5c in
+        Chao et al 2014. You will almost never want to disable this.
+
+    :return float: The generalized Hill number of order `order` for the given
+        data axis using the formula proposed by Chao et al (2014).
+    """
+    ## Degenerate edge cases can cause all zero values, particulary for pi
+    ## in which case we bail out immediately
+    if not np.any(abunds):
+        return 0
+
+    ## Be sure abundance is scaled to relative abundance and convert to np
+    abunds = np.array(abunds)/np.sum(abunds)
+
+    ## If vals is empty then populate the vector with a list of ones
+    ## and this function collapses to the standard Hill number for abundance
+    if vals is None:
+        vals = np.ones(len(abunds))
+
+    ## Make sure vals is an np array or else order > 2 will act crazy
+    vals = np.array(vals)
+    if verbose: print(("sums:", "dij", np.sum(vals), "pij", np.sum(abunds)))
+    ## sum of values weighted by abundance
+    V_bar = np.sum(vals*abunds)
+    if verbose: print(("vbar", V_bar))
+
+    ## Use the special formula for order = 1
+    if order == 1:
+        proportions = vals*(abunds/V_bar)
+        h = np.exp(-np.sum(proportions * np.log(abunds/V_bar)))
+    else:
+        h = np.sum(vals*(abunds/V_bar)**order)**(1./(1-order))
+    if scale: h = h/V_bar
+    return h
 
 
 ## Error messages
