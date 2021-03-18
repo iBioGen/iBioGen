@@ -187,7 +187,9 @@ def load_sims(sims, sep=" ", calc_slopes=True):
         for i in range(1, 4):
             params_df[f"abund_h{i}"] = dat_df.apply(_hill_number, order=i, axis=1)
         for i in range(1, 4):
-            params_df[f"pi_h{i}"] = dat_df.apply(_hill_number, pi=True, order=i, axis=1)
+            params_df[f"pi_h{i}"] = dat_df.apply(_hill_number, vals="pi", order=i, axis=1)
+        for i in range(1, 4):
+            params_df[f"sp_h{i}"] = dat_df.apply(_hill_number, vals="sp", order=i, axis=1)
 
         if calc_slopes:
             params_df["pi_lambda_slope"] = dat_df.apply(_slope, axis=1)
@@ -232,22 +234,26 @@ def _test_significance(data, replicates=100):
         return "zero"
 
 
-def _hill_number(data, pi=False, order=1):
+def _hill_number(data, vals="", order=1):
     """
     Calculate hill numbers from a row of simulation data
 
     :param array-like data: A row of simulated data from the output file
-    :param bool pi: If true, calculate the hill numbers for genetic data
+    :param vals str: Must be one of "pi", "sp", or "". The values to calculate
+                        hill numbers for. If blank then just abundance.
     :param int order: The order of the hill number to calculate
     """
 
-    pis = None
-    if pi:
-        pis = np.array([x["pi"] for x in data])
+    if vals == "pi":
+        vals = np.array([x["pi"] for x in data])
+    elif vals == "sp":
+        vals = np.array([x["lambda_"] for x in data])
+    else:
+        vals = None
 
     abundance = np.array([x["abundance"] for x in data])
 
-    return _generalized_hill_number(abundance, vals=pis, order=order)
+    return _generalized_hill_number(abundance, vals=vals, order=order)
 
 
 def _generalized_hill_number(abunds, vals=None, order=1, scale=True, verbose=False):
