@@ -28,6 +28,7 @@ with warnings.catch_warnings(record=True) as w:
 from .iBioGen import Core
 from .ClaDS import ClaDS
 from .util import *
+import iBioGen.plotting
 
 ## FIXME: If need be import modules that raise annoying warnings here
 ## Very annoying if you don't catch and ignore this.

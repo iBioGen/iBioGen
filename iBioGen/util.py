@@ -196,7 +196,7 @@ def load_sims(sims, sep=" ", calc_slopes=True):
             params_df["slope_sign"] = dat_df.apply(_test_significance, axis=1)
     else:
         raise iBioGenError("Input simulations not understood. Must be a file name or a pandas DataFrame")
-    return params_df, dat_df
+    return params_df, dat_df, sim_df["tree"]
 
 
 def _slope(data):
