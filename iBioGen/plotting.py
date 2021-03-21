@@ -16,7 +16,7 @@ def plot_simulation(dat_df,
                     width=700,
                     height=1000,
                     tip_colors=None,
-                    log_tip_colors=False,
+                    log_colors=False,
                     verbose=False):
     canvas = toyplot.Canvas(width=width, height=height)
 
@@ -31,27 +31,15 @@ def plot_simulation(dat_df,
     abunds = np.log10(np.array([x["abundance"] for x in dat_df]))
     rs = np.array([x["r"] for x in dat_df])
 
-    ax0.scatterplot(pis, lambdas)
-    linear_regressor = LinearRegression()
-    linear_regressor.fit(pis.reshape(-1, 1), lambdas.reshape(-1, 1))
-    Y_pred = linear_regressor.predict(pis.reshape(-1, 1))
-    ax0.plot(pis, Y_pred, color='red')
+    _scatter_slope(ax0, pis, lambdas)
     ax0.label.text = "pi/Spec. rate correlation"
     if verbose: print("pi/speciation rate correlation: ", linear_regressor.coef_[0][0])
 
-    ax1.scatterplot(rs, lambdas)
-    linear_regressor = LinearRegression()
-    linear_regressor.fit(rs.reshape(-1, 1), lambdas.reshape(-1, 1))
-    Y_pred = linear_regressor.predict(rs.reshape(-1, 1))
-    ax1.plot(rs, Y_pred, color='red')
+    _scatter_slope(ax1, rs, lambdas)
     ax1.label.text = "Growth rate/Spec. rate correlation"
     if verbose: print("r/speciation rate correlation: ", linear_regressor.coef_[0][0])
 
-    ax2.scatterplot(pis, abunds)
-    linear_regressor = LinearRegression()
-    linear_regressor.fit(pis.reshape(-1, 1), abunds.reshape(-1, 1))
-    Y_pred = linear_regressor.predict(pis.reshape(-1, 1))
-    ax2.plot(pis, Y_pred, color='red')
+    _scatter_slope(ax2, pis, abunds)
     ax2.label.text = "pi/abundance correlation"
     if verbose: print("pi/abundance correlation: ", linear_regressor.coef_[0][0])
 
@@ -62,22 +50,16 @@ def plot_simulation(dat_df,
     ax3.label.text = "pi/abund/spec rate distributions"
 
     tre = toytree.tree(tree)
-    if tip_colors:
-        tips = tre.get_tip_labels()
-        try:
-            colors = np.array([dat_df[t][tip_colors] for t in tips])
-        except KeyError:
-            raise iBioGenError(BAD_TIP_COLOR_DESCRIPTOR.format(list(dat_df.iloc[0]),
-                                                                tip_colors))
-        if log_tip_colors:
-            colors = np.log10(colors)
-        minc = min(colors)
-        maxc = max(colors)
-        cm = toyplot.color.diverging.map("BlueRed", domain_min=minc, domain_max=maxc)
-        colors = cm.colors(colors)
-    else:
-        colors = "black"
+    tips = tre.get_tip_labels()
+    data = None
+    try:
+        if tip_colors:
+            data = np.array([dat_df[t][tip_colors] for t in tips])
+    except KeyError:
+        raise iBioGenError(BAD_TIP_COLOR_DESCRIPTOR.format(list(dat_df.iloc[0]),
+                                                            tip_colors))
 
+    colors = _get_colors(data, log_colors)
     tre.draw(axes=ax4, tip_labels_colors=colors)
     if tip_colors: ax4.label.text = "Tree tips colored by {}".format(tip_colors)
 
@@ -152,6 +134,77 @@ def plot_simulations_summary(params_df,
     ax7.label.text = "Spec. rate Hill 1"
 
     return canvas
+
+
+def plot_random_simulations(params_df,
+                            dat_df,
+                            width=700,
+                            height=1000,
+                            upper_lambda=None,
+                            marker_colors=None):
+    canvas = toyplot.Canvas(width=width, height=height)
+
+    if upper_lambda:
+        maxl = np.max(np.array([list(map(lambda y: y["lambda_"], dat_df[x])) for x in dat_df]), axis=0)
+        params_df = params_df.iloc[maxl < upper_lambda]
+        #dat_df = dat_df.iloc[maxl < upper_lambda]
+
+    pos = params_df[params_df["slope_sign"] == "positive"]
+    neg = params_df[params_df["slope_sign"] == "negative"]
+    zer = params_df[params_df["slope_sign"] == "zero"]
+    
+    # Left column
+    ax0 = canvas.cartesian(bounds=('5%', '45%', '3%', '24%'))
+    ax1 = canvas.cartesian(bounds=('5%', '45%', '30%', '50%'))
+    ax2 = canvas.cartesian(bounds=('5%', '45%', '56%', '74%'))
+    ax3 = canvas.cartesian(bounds=('5%', '45%', '80%', '97%'))
+    # Right column
+    ax4 = canvas.cartesian(bounds=('55%', '95%', '3%', '24%'))
+    ax5 = canvas.cartesian(bounds=('55%', '95%', '30%', '50%'))
+    ax6 = canvas.cartesian(bounds=('55%', '95%', '56%', '74%'))
+    ax7 = canvas.cartesian(bounds=('55%', '95%', '80%', '97%'))
+
+    for ax, idx in zip([ax0, ax1, ax2, ax3], np.random.choice(pos.index, 4)):
+        pis = np.array([x["pi"] for x in dat_df.iloc[idx]])
+        lambdas = np.array([x["lambda_"] for x in dat_df.iloc[idx]])
+        abunds = np.log10(np.array([x["abundance"] for x in dat_df.iloc[idx]]))
+        rs = np.array([x["r"] for x in dat_df.iloc[idx]])
+        _scatter_slope(ax, pis, lambdas, colors=rs)
+    ax0.label.text = "Positive slope"
+
+    for ax, idx in zip([ax4, ax5, ax6, ax7], np.random.choice(neg.index, 4)):
+        pis = np.array([x["pi"] for x in dat_df.iloc[idx]])
+        lambdas = np.array([x["lambda_"] for x in dat_df.iloc[idx]])
+        abunds = np.log10(np.array([x["abundance"] for x in dat_df.iloc[idx]]))
+        rs = np.array([x["r"] for x in dat_df.iloc[idx]])
+        _scatter_slope(ax, pis, lambdas, colors=rs)
+    ax4.label.text = "Negative slope"
+
+    return canvas
+
+
+def _scatter_slope(ax, dat1, dat2, colors='', log_colors=False):
+    colors = _get_colors(colors, log_colors)
+    ax.scatterplot(dat1, dat2, color=colors)
+    linear_regressor = LinearRegression()
+    linear_regressor.fit(dat1.reshape(-1, 1), dat2.reshape(-1, 1))
+    Y_pred = linear_regressor.predict(dat1.reshape(-1, 1))
+    ax.plot(dat1, Y_pred, color='red')
+
+
+def _get_colors(data, log_colors=False):
+    if len(data):
+        if log_colors:
+            data = np.log10(data)
+        minc = min(data)
+        maxc = max(data)
+        cm = toyplot.color.diverging.map("BlueRed", domain_min=minc, domain_max=maxc)
+        colors = cm.colors(data)
+    else:
+        colors = None
+
+    return colors
+
 
 # Error messages
 BAD_TIP_COLOR_DESCRIPTOR = """
