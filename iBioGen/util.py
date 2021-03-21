@@ -161,16 +161,18 @@ def set_params(data, param, newvalue, quiet=True):
     return data
 
 
-def load_sims(sims, sep=" ", calc_slopes=True):
+def load_sims(sims, sep=" ", nrows=None, calc_slopes=True):
     """
     Load simulations either from a dataframe or from a file.
 
+    nrows:          Number of simulations to load. If None then loads all.
     calc_slopes:    Calculate slope of pi/speciation rate regression and
                     whether or not the slope is significantly different
                     from zero using a permutation approach.
     """
+
     if isinstance(sims, str):
-        sim_df = pd.read_csv(sims, sep=sep, header=0)
+        sim_df = pd.read_csv(sims, sep=sep, header=0, nrows=nrows)
         # Get the nicely formatted params and stats
         # Carve off the last two elements which are data and the tree
         params_df = sim_df.loc[:, sim_df.columns[:-2]]

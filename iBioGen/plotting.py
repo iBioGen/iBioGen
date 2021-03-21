@@ -15,6 +15,8 @@ def plot_simulation(dat_df,
                     tree,
                     width=700,
                     height=1000,
+                    tip_colors=None,
+                    log_tip_colors=False,
                     verbose=False):
     canvas = toyplot.Canvas(width=width, height=height)
 
@@ -60,7 +62,24 @@ def plot_simulation(dat_df,
     ax3.label.text = "pi/abund/spec rate distributions"
 
     tre = toytree.tree(tree)
-    tre.draw(axes=ax4)
+    if tip_colors:
+        tips = tre.get_tip_labels()
+        try:
+            colors = np.array([dat_df[t][tip_colors] for t in tips])
+        except KeyError:
+            raise iBioGenError(BAD_TIP_COLOR_DESCRIPTOR.format(list(dat_df.iloc[0]),
+                                                                tip_colors))
+        if log_tip_colors:
+            colors = np.log10(colors)
+        minc = min(colors)
+        maxc = max(colors)
+        cm = toyplot.color.diverging.map("BlueRed", domain_min=minc, domain_max=maxc)
+        colors = cm.colors(colors)
+    else:
+        colors = "black"
+
+    tre.draw(axes=ax4, tip_labels_colors=colors)
+    if tip_colors: ax4.label.text = "Tree tips colored by {}".format(tip_colors)
 
     return canvas
 
@@ -133,6 +152,13 @@ def plot_simulations_summary(params_df,
     ax7.label.text = "Spec. rate Hill 1"
 
     return canvas
+
+# Error messages
+BAD_TIP_COLOR_DESCRIPTOR = """
+Coloring tree tips must use one of the available attributes:
+  {}
+You put: {}
+"""
 
 
 if __name__ == "__main__":
