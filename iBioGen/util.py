@@ -185,6 +185,10 @@ def load_sims(sims, sep=" ", nrows=None, calc_slopes=True):
             sims.append(dat)
         dat_df = pd.DataFrame(sims)
 
+        # Calculate ClaDS m (a compound parameter) as a convenience
+        params_df["ClaDS_m"] = params_df["ClaDS_alpha"] *\
+                                    np.exp(params_df["ClaDS_sigma"]**2/2)
+
         # Hill numbers for pi and abundance
         for i in range(1, 4):
             params_df[f"abund_h{i}"] = dat_df.apply(_hill_number, order=i, axis=1)
