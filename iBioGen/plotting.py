@@ -224,17 +224,22 @@ def plot_trees(tre, width=700, height=700):
         ax.y.ticks.labels.show = False
 
 
-def _scatter_slope(ax, dat1, dat2, colors='', log_colors=False):
+def _scatter_slope(ax, dat1, dat2, colors='', log_colors=False, verbose=False):
     if len(colors):
         labels = colors
     else:
         labels = None
     colors = _get_colors(colors, log_colors)
-    ax.scatterplot(dat1, dat2, color=colors, title=labels)
+    try:
+        ax.scatterplot(dat1, dat2, color=colors, title=labels)
+    except:
+        # fall back to matplotlib if the ax passed in isn't toyplot
+        ax.scatter(dat1, dat2, color=colors)
     linear_regressor = LinearRegression()
     linear_regressor.fit(dat1.reshape(-1, 1), dat2.reshape(-1, 1))
     Y_pred = linear_regressor.predict(dat1.reshape(-1, 1))
     ax.plot(dat1, Y_pred, color='red')
+    if verbose: print(linear_regressor.coef_[0][0])
 
 
 def _get_colors(data, log_colors=False):
