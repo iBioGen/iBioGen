@@ -314,6 +314,166 @@ def _generalized_hill_number(abunds, vals=None, order=1, scale=True, verbose=Fal
     return h
 
 
+# all branches of given tree will be rescaled to TARGET_AVG_BL
+TARGET_AVG_BL = 1
+
+def _add_dist_to_root(tre):
+    """
+    Add distance to root (dist_to_root) attribute to each node
+    :param tre: ete3.Tree, tree on which the dist_to_root should be added
+    :return: void, modifies the original tree
+    """
+
+    for node in tre.traverse("preorder"):
+        if node.is_root():
+            node.add_feature("dist_to_root", 0)
+        elif node.is_leaf():
+            node.add_feature("dist_to_root", getattr(node.up, "dist_to_root") + node.dist)
+            # tips_dist.append(getattr(node.up, "dist_to_root") + node.dist)
+        else:
+            node.add_feature("dist_to_root", getattr(node.up, "dist_to_root") + node.dist)
+            # int_nodes_dist.append(getattr(node.up, "dist_to_root") + node.dist)
+    return None
+
+
+def _rescale_tree(tre, target_avg_length):
+    """
+    Returns branch length metrics (all branches taken into account and external only)
+    :param tre: ete3.Tree, tree on which these metrics are computed
+    :param target_avg_length: float, the average branch length to which we want to rescale the tree
+    :return: float, resc_factor
+    """
+    # branch lengths
+    dist_all = [node.dist for node in tre.traverse("levelorder")]
+
+    all_bl_mean = np.mean(dist_all)
+
+    resc_factor = all_bl_mean/target_avg_length
+
+    for node in tre.traverse():
+        node.dist = node.dist/resc_factor
+
+    return resc_factor
+
+
+def CBLV(tree_input, sampling_proba):
+    """Rescales all trees from tree_file so that mean branch length is 1,
+    then encodes them into full tree representation (most recent version)
+    Compact Bijective Ladderized Vector (CBLV) from Voznika et al 2021
+
+    :param tree_input: ete3.Tree, that we will represent in the form of a vector
+    :param sampling_proba: float, value between 0 and 1, presumed sampling probability value
+    :return: pd.Dataframe, encoded rescaled input trees in the form of most recent, last column being
+     the rescale factor
+    """
+
+    def real_polytomies(tre):
+        """
+        Replaces internal nodes of zero length with real polytomies.
+        :param tre: ete3.Tree, the tree to be modified
+        :return: void, modifies the original tree
+        """
+        for nod in tre.traverse("postorder"):
+            if not nod.is_leaf() and not nod.is_root():
+                if nod.dist == 0:
+                    for child in nod.children:
+                        nod.up.add_child(child)
+                    nod.up.remove_child(nod)
+        return
+
+    def get_not_visited_anc(leaf):
+        while getattr(leaf, "visited", 0) >= len(leaf.children)-1:
+            leaf = leaf.up
+            if leaf is None:
+                break
+        return leaf
+
+    def get_deepest_not_visited_tip(anc):
+        max_dist = -1
+        tip = None
+        for leaf in anc:
+            if leaf.visited == 0:
+                tip = leaf
+        return tip
+
+    def get_dist_to_root(anc):
+        dist_to_root = getattr(anc, "dist_to_root")
+        return dist_to_root
+
+    def get_dist_to_anc(feuille, anc):
+        dist_to_anc = getattr(feuille, "dist_to_root") - getattr(anc, "dist_to_root")
+        return dist_to_anc
+
+    def encode(anc):
+        leaf = get_deepest_not_visited_tip(anc)
+        #print("{}".format(leaf.name), end="\t")
+        yield get_dist_to_anc(leaf, anc)
+        leaf.visited += 1
+        anc = get_not_visited_anc(leaf)
+
+        if anc is None:
+            return
+        anc.visited += 1
+        yield get_dist_to_root(anc)
+        for _ in encode(anc):
+            yield _
+
+    def complete_coding(encoding, max_length):
+        add_vect = np.repeat(0, max_length - len(encoding))
+        add_vect = list(add_vect)
+        encoding.extend(add_vect)
+        return encoding
+
+    def refactor_to_final_shape(result_v, sampling_p, max_length):
+        tips_coor = np.arange(0, max_length, 2)
+        int_nodes_coor = np.arange(1, max_length + 1, 2)
+
+        reshape_coordinates = np.append(int_nodes_coor, tips_coor)
+    
+        # reorder the columns
+        result_v = result_v.iloc[:,reshape_coordinates]
+
+        return result_v
+
+    # local copy of input tree
+    tree = tree_input.copy().treenode
+
+    if len(tree) <= 200:
+        max_len = 400
+    else:
+        max_len = 999
+
+    # remove the edge above root if there is one
+    if len(tree.children) < 2:
+        tree = tree.children[0]
+        tree.detach()
+
+    # set to real polytomy
+    real_polytomies(tree)
+
+    # rescale branch lengths
+    rescale_factor = _rescale_tree(tree, target_avg_length=TARGET_AVG_BL)
+
+    # set all nodes to non visited:
+    for node in tree.traverse():
+        setattr(node, "visited", 0)
+
+    _add_dist_to_root(tree)
+
+    tree_embedding = list(encode(tree))
+    tree_embedding = complete_coding(tree_embedding, max_len)
+    #tree_embedding.append(rescale_factor)
+
+    result = pd.DataFrame(tree_embedding, columns=[0])
+
+    result = result.T
+    # refactor to final shape: add sampling probability, put features in order
+
+    result = refactor_to_final_shape(result, sampling_proba, max_len)
+
+    return tree, result, rescale_factor
+
+
 ## Error messages
 BAD_PARAMETER = """\
     Error setting parameter '{}'
